@@ -8,6 +8,8 @@ export default function App() {
 
   // Search, filter, pagination
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [isDebouncing, setIsDebouncing] = useState(false);
   const [hazardousFilter, setHazardousFilter] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('ASC');
@@ -20,6 +22,7 @@ export default function App() {
   const [riskData, setRiskData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
+  const [approachTab, setApproachTab] = useState('upcoming');
 
   // Backend & ML service health check
   const [backendHealthy, setBackendHealthy] = useState(true);
@@ -33,7 +36,21 @@ export default function App() {
       .catch(() => setBackendHealthy(false));
   }, []);
 
-  // Fetch NEOs list
+  // Debounce search input by 350ms to reduce backend API calls
+  useEffect(() => {
+    if (search.trim() !== debouncedSearch.trim()) {
+      setIsDebouncing(true);
+    }
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setIsDebouncing(false);
+      setPage(1);
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Fetch NEOs list using debouncedSearch
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -41,7 +58,7 @@ export default function App() {
     const queryParams = new URLSearchParams({
       page: page.toString(),
       limit: '12',
-      search: search.trim(),
+      search: debouncedSearch.trim(),
       sortBy: sortBy,
       sortOrder: sortOrder
     });
@@ -65,7 +82,7 @@ export default function App() {
         setError(err.message);
         setLoading(false);
       });
-  }, [page, search, hazardousFilter, sortBy, sortOrder]);
+  }, [page, debouncedSearch, hazardousFilter, sortBy, sortOrder]);
 
   // Fetch NEO detail and risk score when selected
   useEffect(() => {
@@ -98,6 +115,17 @@ export default function App() {
       });
   }, [selectedNeoId]);
 
+  // Set default active approach tab when object detail loads
+  useEffect(() => {
+    if (selectedNeoDetail) {
+      const now = new Date();
+      const hasUpcoming = (selectedNeoDetail.close_approaches || []).some(
+        ca => ca.approach_date && new Date(ca.approach_date) >= now
+      );
+      setApproachTab(hasUpcoming ? 'upcoming' : 'past');
+    }
+  }, [selectedNeoDetail]);
+
   // Format helpers
   const formatKm = (val) => {
     if (val == null) return 'N/A';
@@ -116,6 +144,33 @@ export default function App() {
       return `${(min * 1000).toFixed(0)}m – ${(max * 1000).toFixed(0)}m`;
     }
     return `${((min || max) * 1000).toFixed(0)}m`;
+  };
+
+  const formatRelativeTime = (dateStr, isUpcoming) => {
+    if (!dateStr) return '';
+    const target = new Date(dateStr);
+    const now = new Date();
+    const diffMs = target.getTime() - now.getTime();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+    if (isUpcoming) {
+      if (diffDays <= 0) return 'Today';
+      if (diffDays === 1) return 'Tomorrow';
+      if (diffDays < 30) return `in ${diffDays} days`;
+      const diffMonths = Math.round(diffDays / 30.4);
+      if (diffMonths < 12) return `in ~${diffMonths} month${diffMonths === 1 ? '' : 's'}`;
+      const diffYears = (diffDays / 365.25).toFixed(1);
+      return `in ~${diffYears} years`;
+    } else {
+      const absDays = Math.abs(diffDays);
+      if (absDays <= 0) return 'Today';
+      if (absDays === 1) return 'Yesterday';
+      if (absDays < 30) return `${absDays} days ago`;
+      const diffMonths = Math.round(absDays / 30.4);
+      if (diffMonths < 12) return `~${diffMonths} month${diffMonths === 1 ? '' : 's'} ago`;
+      const diffYears = (absDays / 365.25).toFixed(1);
+      return `~${diffYears} years ago`;
+    }
   };
 
   return (
@@ -167,11 +222,13 @@ export default function App() {
             className="search-input"
             placeholder="Search asteroids by name or ID (e.g. Eros, Geographos)..."
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
+            onChange={(e) => setSearch(e.target.value)}
           />
+          {isDebouncing && (
+            <div className="search-status-hint" id="search-debouncing-indicator">
+              <span>⏳ Filtering catalog...</span>
+            </div>
+          )}
         </div>
 
         <div className="filters-group">
@@ -469,39 +526,165 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* Close Approach History */}
-                        <div className="metrics-table-group">
-                          <h4>Recorded Close Approach Events ({selectedNeoDetail.close_approaches?.length || 0})</h4>
-                          {selectedNeoDetail.close_approaches && selectedNeoDetail.close_approaches.length > 0 ? (
-                            <div className="approaches-table-wrapper">
-                              <table className="approaches-table">
-                                <thead>
-                                  <tr>
-                                    <th>Date</th>
-                                    <th>Velocity (km/h)</th>
-                                    <th>Miss Distance</th>
-                                    <th>Target Body</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {selectedNeoDetail.close_approaches.slice(0, 10).map((ca, idx) => (
-                                    <tr key={ca.id || idx}>
-                                      <td>{ca.approach_date ? new Date(ca.approach_date).toLocaleDateString() : 'Historical'}</td>
-                                      <td>{ca.relative_velocity_kmh ? Number(ca.relative_velocity_kmh).toLocaleString(undefined, { maximumFractionDigits: 0 }) : 'N/A'}</td>
-                                      <td>
-                                        {formatKm(ca.miss_distance_km)}
-                                        <small style={{ color: 'var(--text-muted)' }}>{formatLunarDistance(ca.miss_distance_km)}</small>
-                                      </td>
-                                      <td>{ca.orbiting_body || 'Earth'}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                        {/* Close Approach Events: Split into Upcoming and Past Approaches */}
+                        {(() => {
+                          const now = new Date();
+                          const allApproaches = selectedNeoDetail.close_approaches || [];
+
+                          // Approaches occurring on or after current date
+                          const upcomingApproaches = allApproaches
+                            .filter(ca => ca.approach_date && new Date(ca.approach_date) >= now)
+                            .sort((a, b) => new Date(a.approach_date) - new Date(b.approach_date));
+
+                          // Approaches that occurred before current date
+                          const pastApproaches = allApproaches
+                            .filter(ca => !ca.approach_date || new Date(ca.approach_date) < now)
+                            .sort((a, b) => new Date(b.approach_date) - new Date(a.approach_date));
+
+                          return (
+                            <div className="metrics-table-group">
+                              <div className="approach-tabs-header">
+                                <h4>Close Approach Encounters ({allApproaches.length} Total)</h4>
+                                <div className="approach-tabs-nav" role="tablist">
+                                  <button
+                                    id="tab-upcoming-approaches"
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={approachTab === 'upcoming'}
+                                    className={`approach-tab-btn ${approachTab === 'upcoming' ? 'active' : ''}`}
+                                    onClick={() => setApproachTab('upcoming')}
+                                  >
+                                    <span>🚀 Upcoming Passes</span>
+                                    <span className="approach-count-badge">{upcomingApproaches.length}</span>
+                                  </button>
+                                  <button
+                                    id="tab-past-approaches"
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={approachTab === 'past'}
+                                    className={`approach-tab-btn ${approachTab === 'past' ? 'active' : ''}`}
+                                    onClick={() => setApproachTab('past')}
+                                  >
+                                    <span>🕰️ Past Encounters</span>
+                                    <span className="approach-count-badge">{pastApproaches.length}</span>
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* 1. UPCOMING APPROACHES */}
+                              {approachTab === 'upcoming' && (
+                                upcomingApproaches.length > 0 ? (
+                                  <div className="approaches-table-wrapper" id="upcoming-approaches-table">
+                                    <table className="approaches-table">
+                                      <thead>
+                                        <tr>
+                                          <th>Next Approach Date</th>
+                                          <th>Timing</th>
+                                          <th>Velocity (km/h)</th>
+                                          <th>Miss Distance</th>
+                                          <th>Orbiting Body</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {upcomingApproaches.map((ca, idx) => (
+                                          <tr key={ca.id || `up-${idx}`}>
+                                            <td>
+                                              <strong>
+                                                {new Date(ca.approach_date).toLocaleDateString(undefined, {
+                                                  year: 'numeric',
+                                                  month: 'short',
+                                                  day: 'numeric'
+                                                })}
+                                              </strong>
+                                            </td>
+                                            <td>
+                                              <span className="approach-relative-tag upcoming">
+                                                {formatRelativeTime(ca.approach_date, true)}
+                                              </span>
+                                            </td>
+                                            <td>
+                                              {ca.relative_velocity_kmh
+                                                ? Number(ca.relative_velocity_kmh).toLocaleString(undefined, { maximumFractionDigits: 0 })
+                                                : 'N/A'}
+                                            </td>
+                                            <td>
+                                              {formatKm(ca.miss_distance_km)}
+                                              <small style={{ color: 'var(--text-muted)' }}>
+                                                {formatLunarDistance(ca.miss_distance_km)}
+                                              </small>
+                                            </td>
+                                            <td>{ca.orbiting_body || 'Earth'}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                ) : (
+                                  <div className="approach-empty-state" id="empty-upcoming-approaches">
+                                    <p>🚀 No upcoming close approaches cataloged for this asteroid in the current JPL dataset.</p>
+                                  </div>
+                                )
+                              )}
+
+                              {/* 2. PAST APPROACHES */}
+                              {approachTab === 'past' && (
+                                pastApproaches.length > 0 ? (
+                                  <div className="approaches-table-wrapper" id="past-approaches-table">
+                                    <table className="approaches-table">
+                                      <thead>
+                                        <tr>
+                                          <th>Historical Pass Date</th>
+                                          <th>Passed</th>
+                                          <th>Velocity (km/h)</th>
+                                          <th>Miss Distance</th>
+                                          <th>Orbiting Body</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {pastApproaches.slice(0, 15).map((ca, idx) => (
+                                          <tr key={ca.id || `past-${idx}`}>
+                                            <td>
+                                              <strong>
+                                                {ca.approach_date
+                                                  ? new Date(ca.approach_date).toLocaleDateString(undefined, {
+                                                      year: 'numeric',
+                                                      month: 'short',
+                                                      day: 'numeric'
+                                                    })
+                                                  : 'Historical'}
+                                              </strong>
+                                            </td>
+                                            <td>
+                                              <span className="approach-relative-tag past">
+                                                {formatRelativeTime(ca.approach_date, false)}
+                                              </span>
+                                            </td>
+                                            <td>
+                                              {ca.relative_velocity_kmh
+                                                ? Number(ca.relative_velocity_kmh).toLocaleString(undefined, { maximumFractionDigits: 0 })
+                                                : 'N/A'}
+                                            </td>
+                                            <td>
+                                              {formatKm(ca.miss_distance_km)}
+                                              <small style={{ color: 'var(--text-muted)' }}>
+                                                {formatLunarDistance(ca.miss_distance_km)}
+                                              </small>
+                                            </td>
+                                            <td>{ca.orbiting_body || 'Earth'}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                ) : (
+                                  <div className="approach-empty-state" id="empty-past-approaches">
+                                    <p>🕰️ No historical approach events cataloged in this record.</p>
+                                  </div>
+                                )
+                              )}
                             </div>
-                          ) : (
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No recorded close approach events found.</p>
-                          )}
-                        </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </section>
