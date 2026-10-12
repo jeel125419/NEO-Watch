@@ -4,12 +4,12 @@ from typing import Optional, Dict, Any
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 import joblib
+import pandas as pd
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "model.joblib")
 model = None
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
+def load_model():
     global model
     if os.path.exists(MODEL_PATH):
         try:
@@ -18,8 +18,14 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f"[ML-Service] Warning: Failed to load model: {e}")
             model = None
-    else:
-        print("[ML-Service] Model artifact not yet found. Offline training will produce model.joblib in Phase 2.")
+
+# Attempt initial load
+load_model()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if model is None:
+        load_model()
     yield
 
 app = FastAPI(title="NEO Watch ML Microservice", lifespan=lifespan)
@@ -56,16 +62,16 @@ def predict(features: AsteroidFeatures):
     
     # Model inference (will be refined with exact pipeline in Phase 2)
     # Prepared input features
-    input_data = [[
-        features.miss_distance_km,
-        features.relative_velocity_kmh,
-        features.absolute_magnitude_h,
-        features.estimated_diameter_min_km,
-        features.estimated_diameter_max_km,
-        features.eccentricity
-    ]]
-    pred = model.predict(input_data)[0]
-    prob = getattr(model, "predict_proba", lambda x: [[0.5, 0.5]])(input_data)[0]
+    input_df = pd.DataFrame([{
+        "miss_distance_km": features.miss_distance_km,
+        "relative_velocity_kmh": features.relative_velocity_kmh,
+        "absolute_magnitude_h": features.absolute_magnitude_h,
+        "estimated_diameter_min_km": features.estimated_diameter_min_km,
+        "estimated_diameter_max_km": features.estimated_diameter_max_km,
+        "eccentricity": features.eccentricity
+    }])
+    pred = model.predict(input_df)[0]
+    prob = getattr(model, "predict_proba", lambda x: [[0.5, 0.5]])(input_df)[0]
     hazard_prob = float(prob[1]) if len(prob) > 1 else float(pred)
 
     tier = "High" if hazard_prob >= 0.7 else ("Medium" if hazard_prob >= 0.3 else "Low")

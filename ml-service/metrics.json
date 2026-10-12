@@ -1,0 +1,19 @@
+{
+  "dataset_size": 70,
+  "hazardous_count": 23,
+  "non_hazardous_count": 47,
+  "cv_metrics_hazardous": {
+    "precision": 0.72,
+    "recall": 0.8699999999999999,
+    "f1": 0.7665800865800867
+  },
+  "cv_accuracy": 0.8142857142857143,
+  "feature_importances": {
+    "miss_distance_km": 0.46428971275509123,
+    "relative_velocity_kmh": 0.11640222809103233,
+    "absolute_magnitude_h": 0.09399913512981947,
+    "estimated_diameter_min_km": 0.12581386553873838,
+    "estimated_diameter_max_km": 0.09494346069726974,
+    "eccentricity": 0.10455159778804866
+  }
+}
