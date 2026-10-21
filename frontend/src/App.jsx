@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import VisibilityPredictor from './components/VisibilityPredictor.jsx';
 import './App.css';
 
 export default function App() {
+  const [activeNav, setActiveNav] = useState('catalog'); // 'catalog' | 'visibility'
+  const [predictTargetNeoId, setPredictTargetNeoId] = useState(null);
+
   const [neos, setNeos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -197,17 +201,40 @@ export default function App() {
         </div>
       </header>
 
-      {/* Educational Banner */}
-      <section className="info-banner" aria-label="Educational context">
-        <div className="info-icon">💡</div>
-        <div className="info-text">
-          <h3>What does "Potentially Hazardous" really mean?</h3>
-          <p>
-            NASA designates an asteroid as potentially hazardous if its orbit comes within <strong>0.05 AU</strong> (about 7.5 million km or 19.5 Lunar Distances) of Earth and its diameter exceeds ~<strong>140 meters</strong>. 
-            This is an administrative eligibility criterion for continued observational tracking — <em>not</em> a prediction of an imminent impact. Our ML model reconstructs this hazard classification using NASA's orbital physics features.
-          </p>
-        </div>
-      </section>
+      {/* Main Navigation Tabs */}
+      <nav className="app-main-nav" aria-label="Main Navigation">
+        <button
+          id="nav-catalog-btn"
+          type="button"
+          className={`main-nav-btn ${activeNav === 'catalog' ? 'active' : ''}`}
+          onClick={() => setActiveNav('catalog')}
+        >
+          <span>☄️ Asteroid Catalog</span>
+        </button>
+        <button
+          id="nav-visibility-btn"
+          type="button"
+          className={`main-nav-btn ${activeNav === 'visibility' ? 'active' : ''}`}
+          onClick={() => setActiveNav('visibility')}
+        >
+          <span>🔭 Tonight’s Visibility Predictor</span>
+        </button>
+      </nav>
+
+      {/* VIEW 1: Asteroid Catalog */}
+      {activeNav === 'catalog' && (
+        <>
+          {/* Educational Banner */}
+          <section className="info-banner" aria-label="Educational context">
+            <div className="info-icon">💡</div>
+            <div className="info-text">
+              <h3>What does "Potentially Hazardous" really mean?</h3>
+              <p>
+                NASA designates an asteroid as potentially hazardous if its orbit comes within <strong>0.05 AU</strong> (about 7.5 million km or 19.5 Lunar Distances) of Earth and its diameter exceeds ~<strong>140 meters</strong>. 
+                This is an administrative eligibility criterion for continued observational tracking — <em>not</em> a prediction of an imminent impact. Our ML model reconstructs this hazard classification using NASA's orbital physics features.
+              </p>
+            </div>
+          </section>
 
       {/* Control Card (Search & Filters) */}
       <section className="controls-card" aria-label="Filters and search">
@@ -345,9 +372,23 @@ export default function App() {
                   <span>
                     Closest: <strong>{neo.closest_miss_distance_km ? formatKm(neo.closest_miss_distance_km) : 'Historical'}</strong>
                   </span>
-                  <span className="card-view-cta">
-                    Details & Risk &rarr;
-                  </span>
+                  <div className="card-footer-actions">
+                    <button
+                      type="button"
+                      className="card-vis-btn"
+                      title="Check tonight's sky visibility from your location"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPredictTargetNeoId(neo.id);
+                        setActiveNav('visibility');
+                      }}
+                    >
+                      🔭 Stargaze
+                    </button>
+                    <span className="card-view-cta">
+                      Details &rarr;
+                    </span>
+                  </div>
                 </div>
               </article>
             ))}
@@ -379,6 +420,16 @@ export default function App() {
           </nav>
         )}
       </main>
+      </>
+      )}
+
+      {/* VIEW 2: Tonight's Visibility Predictor (Phase 5) */}
+      {activeNav === 'visibility' && (
+        <VisibilityPredictor
+          initialNeoId={predictTargetNeoId}
+          onSelectNeoModal={(id) => setSelectedNeoId(id)}
+        />
+      )}
 
       {/* Layered Detail Modal (Newbie-First / Detail-on-Demand) */}
       {selectedNeoId && (
@@ -456,6 +507,26 @@ export default function App() {
                       </div>
                     )}
                   </section>
+
+                  {/* Phase 5 Stargazing Quick Action Banner */}
+                  <div className="modal-vis-cta-box">
+                    <div className="modal-vis-cta-text">
+                      <h4>🔭 Can you see this asteroid tonight?</h4>
+                      <p>Calculate topocentric altitude, moon glare interference, and exact viewing window from your location.</p>
+                    </div>
+                    <button
+                      id="modal-open-visibility-btn"
+                      type="button"
+                      className="modal-vis-action-btn"
+                      onClick={() => {
+                        setPredictTargetNeoId(selectedNeoDetail.id);
+                        setSelectedNeoId(null);
+                        setActiveNav('visibility');
+                      }}
+                    >
+                      Check Sky Visibility &rarr;
+                    </button>
+                  </div>
 
                   {/* LAYER 2: Expandable Detail-on-Demand (Orbital Elements & History) */}
                   <section aria-label="Technical astronomical details">

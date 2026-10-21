@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import neosRouter, { handleRiskScore } from './routes/neos.js';
+import visibilityRouter from './routes/visibility.js';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/neos', neosRouter);
+app.use('/api/visibility', visibilityRouter);
 
 // Support both /api/risk-score/:id and /api/neos/:id/risk-score per architecture.md
 app.get('/api/risk-score/:id', handleRiskScore);
