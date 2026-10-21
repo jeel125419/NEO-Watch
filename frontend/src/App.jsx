@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import VisibilityPredictor from './components/VisibilityPredictor.jsx';
+import SkyMap from './components/SkyMap.jsx';
 import './App.css';
 
 export default function App() {
-  const [activeNav, setActiveNav] = useState('catalog'); // 'catalog' | 'visibility'
+  const [activeNav, setActiveNav] = useState('catalog'); // 'catalog' | 'visibility' | 'skymap'
   const [predictTargetNeoId, setPredictTargetNeoId] = useState(null);
 
   const [neos, setNeos] = useState([]);
@@ -219,6 +220,14 @@ export default function App() {
         >
           <span>🔭 Tonight’s Visibility Predictor</span>
         </button>
+        <button
+          id="nav-skymap-btn"
+          type="button"
+          className={`main-nav-btn ${activeNav === 'skymap' ? 'active' : ''}`}
+          onClick={() => setActiveNav('skymap')}
+        >
+          <span>🌌 Interactive Sky Map</span>
+        </button>
       </nav>
 
       {/* VIEW 1: Asteroid Catalog */}
@@ -428,6 +437,13 @@ export default function App() {
         <VisibilityPredictor
           initialNeoId={predictTargetNeoId}
           onSelectNeoModal={(id) => setSelectedNeoId(id)}
+        />
+      )}
+
+      {/* VIEW 3: Interactive Celestial Sky Map (Phase 6) */}
+      {activeNav === 'skymap' && (
+        <SkyMap
+          onSelectNeoDetail={(id) => setSelectedNeoId(id)}
         />
       )}
 
