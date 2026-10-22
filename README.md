@@ -64,6 +64,31 @@ flowchart TD
 
 ---
 
+## 🔬 Scientific Calculations vs. The Experimental ML Model
+
+A core principle of NEO Watch is **scientific clarity and intellectual honesty**. It is crucial to understand what is deterministic astronomy physics versus what is experimental machine learning:
+
+### 1. The Scientific Calculations (The Ground Truth)
+All orbital paths, close-approach dates, miss distances, and horizon positions are **pure physics and astronomical mechanics**, not AI predictions:
+- **NASA JPL / CNEOS Ephemerides**: Encounter dates, relative velocities, and minimum orbit intersection distances (MOID) come directly from NASA Jet Propulsion Laboratory’s radar and optical astrometry.
+- **Topocentric Horizon Calculations**: The altitude, compass azimuth, and observing windows in the *Visibility Predictor* and *Interactive Sky Map* are calculated deterministically in Node.js using Local Sidereal Time (LST), Greenwich Mean Sidereal Time (GMST), Keplerian orbital elements, observer geographic coordinates, and spherical trigonometry.
+- **Lunar Interference**: Real-time lunar phase, illumination percentage, and angular separation are calculated mathematically to estimate sky brightness and visual contrast.
+
+> **An AI does not invent or simulate orbital trajectories. Planetary orbits are governed by celestial mechanics.**
+
+### 2. Why We Implemented the Machine Learning Model
+The ML microservice (Python + FastAPI + Scikit-Learn) was developed as an **experimental educational model**:
+- **Objective**: To explore whether a lightweight statistical classifier (Random Forest) can reconstruct NASA's administrative **Potentially Hazardous Asteroid (PHA)** threshold criteria purely from numerical physical features (absolute magnitude $H$, minimum/maximum estimated diameter, close-approach velocity, miss distance).
+- **Benchmarking**: It demonstrates how machine learning decision trees evaluate feature importance when assessing small-body hazard flags.
+
+### 3. Scientific Limitations & Strict Provenance
+- **Not an Impact Predictor**: The model **does not** predict impact probability, atmospheric detonation, or kinetic deflection.
+- **Administrative Eligibility**: A "Hazardous" designation simply means the asteroid's orbit brings it within 0.05 AU of Earth and its size exceeds ~140 meters, qualifying it for continued radar tracking.
+- **Provenance Transparency**: Every single asteroid risk card in the application displays its exact provenance (`source: 'ml_model'` with confidence score vs. `source: 'nasa_flag_fallback'`).
+- **Resilient Fallback**: If the ML service is offline or unreachable, the system automatically falls back to NASA's official baseline flag without breaking user experience.
+
+---
+
 ## 🚀 Key Features
 
 ### 1. ☄️ Asteroid Catalog & Layered Risk Dossier
@@ -109,11 +134,22 @@ flowchart TD
 - Observation badges displayed on the header profile, watchlist cards, and asteroid modal.
 
 ### 7. 🛰️ External Astronomy Deep-Linking & Telescope GoTo Mounts
-- **NASA JPL 3D Orbit Viewer**: Opens official NASA JPL interactive 3D solar system simulator (`ssd.jpl.nasa.gov`) directly centered on the asteroid's orbit via its NASA SPK-ID.
-- **Aladin Lite (ESA / CDS)**: High-resolution optical deep-sky survey (DSS2 / PanSTARRS) centered directly on the asteroid's Right Ascension (RA) and Declination (Dec).
-- **IAU Minor Planet Center**: Direct link to the International Astronomical Union discovery registry.
-- **TheSkyLive**: Real-time finder charts and visual light curves.
-- **1-Click Telescope GoTo Clipboard**: Copies formatted RA ($HH\text{h } MM\text{m } SS\text{s}$) and Dec ($\pm DD^\circ\text{ } MM'\text{ } SS''$) directly to clipboard for computerized GoTo telescope mounts (SkySafari, ASCOM, SynScan).
+Instead of locking users into a closed ecosystem, NEO Watch directly bridges users to professional, world-class astronomical tools:
+
+1. **🛰️ NASA JPL Small-Body Database (SBDB) 3D Orbit Viewer** (`https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html`):
+   - Opens the official NASA JPL interactive 3D solar system simulator via the asteroid's unique NASA SPK-ID (`sstr={id}&view=VOP`).
+   - Renders the exact 3D Keplerian orbital ellipse around the Sun, orbital inclination relative to Earth's ecliptic plane, real-time Earth-asteroid distance, and full 3D camera pan/tilt controls.
+2. **🗺️ Aladin Lite Deep-Sky Survey** (`https://aladin.cds.unistra.fr/AladinLite/`):
+   - Developed by the **CDS (Centre de Données astronomiques de Strasbourg)** and used by the European Space Agency (ESA).
+   - Automatically passes the asteroid's exact Right Ascension (RA) and Declination (Dec) celestial coordinates to center high-resolution optical survey imagery (DSS2 color, PanSTARRS) directly on the background starfield where the asteroid is located.
+3. **🪐 IAU Minor Planet Center (MPC)** (`https://www.minorplanetcenter.net/`):
+   - The official International Astronomical Union worldwide clearinghouse for all minor planet and asteroid astrometric measurements.
+   - Opens the official discovery dossier, observation baseline, orbital arc length, and radar observation timeline.
+4. **🔭 TheSkyLive Real-Time Tracker** (`https://theskylive.com/`):
+   - Opens dedicated observation guides with visual light curves, constellation transits, and finder charts.
+5. **📋 1-Click Computerized Telescope GoTo Ephemeris**:
+   - Copies exact J2000 equatorial coordinates (`RA: 06h 54m 31s | Dec: +32° 50' 24"`) and local horizon coordinates (`Alt: 85.6° | Az: 346.9°`) directly to the clipboard.
+   - Ready for instant pasting into computerized GoTo telescope mounts, Stellarium Desktop, SkySafari, ASCOM drivers, SynScan, or N.I.N.A.
 
 ---
 
