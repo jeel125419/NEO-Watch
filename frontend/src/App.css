@@ -4287,8 +4287,643 @@
   color: #fca5a5;
 }
 
-@media (max-width: 640px) {
+/* ==========================================================================
+   COMPREHENSIVE RESPONSIVE DESIGN SYSTEM (PHONES, TABLETS & DESKTOPS)
+   ========================================================================== */
+
+/* --- TABLETS & SMALL LAPTOPS (<= 1024px) --- */
+@media (max-width: 1024px) {
+  .app-container {
+    padding: 1.25rem 1.5rem 3.5rem;
+    gap: 1.5rem;
+  }
+
+  /* Sky Map: collapse 2-column dome + sidebar to 1-column vertical layout */
+  .skymap-main-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem;
+  }
+
+  .skymap-canvas-wrapper {
+    width: 100%;
+    align-items: center;
+  }
+
+  .canvas-dome-frame {
+    width: 100%;
+    max-width: 580px;
+    margin: 0 auto;
+  }
+
+  .skymap-canvas {
+    width: 100%;
+    max-width: 520px;
+    height: auto;
+  }
+
+  .skymap-sidebar {
+    width: 100%;
+  }
+
+  /* Visibility Predictor Grids */
+  .vis-controls-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .vis-environment-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* --- MOBILE & TABLET PORTRAIT (<= 768px) --- */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 1rem 0.85rem 3rem;
+    gap: 1.15rem;
+  }
+
+  /* App Header */
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding-bottom: 1rem;
+  }
+
+  .brand {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .brand-title {
+    font-size: 1.45rem;
+  }
+
+  .brand-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .header-badges {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+
+  .status-badge {
+    font-size: 0.72rem;
+    padding: 0.25rem 0.6rem;
+  }
+
+  .user-profile-pill {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 0.4rem 0.65rem;
+    gap: 0.4rem;
+  }
+
+  .user-email-text {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.8rem;
+  }
+
+  /* Main Navigation Tabs: Horizontal Scrollable Bar */
+  .app-main-nav {
+    width: 100%;
+    align-self: stretch;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+    padding: 0.35rem;
+    border-radius: 10px;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .app-main-nav::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+  }
+
+  .main-nav-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 0.86rem;
+    padding: 0.5rem 0.85rem;
+  }
+
+  /* Educational Banner */
+  .info-banner {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem 1.15rem;
+  }
+
+  /* Search & Filter Bar */
+  .controls-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding: 1rem;
+  }
+
+  .search-box {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .filters-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .filters-group select:first-child {
+    grid-column: 1 / -1; /* Hazardous filter spans full width */
+  }
+
+  .filter-select {
+    width: 100%;
+    font-size: 0.82rem;
+    padding: 0.55rem 0.75rem;
+  }
+
+  /* Stats Strip */
+  .stats-strip {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+  }
+
+  /* Asteroids Grid */
+  .neo-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .neo-card {
+    padding: 1.15rem;
+  }
+
+  .neo-card-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .neo-card-actions-cluster {
+    margin-left: auto;
+  }
+
+  .neo-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .card-footer-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Detail Modal */
+  .modal-overlay {
+    padding: 0.5rem;
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    max-height: 94vh;
+    width: 100%;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .modal-header {
+    padding: 1.15rem 1.15rem 0.85rem;
+  }
+
+  .modal-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .modal-title-row h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-actions-toolbar {
+    width: 100%;
+    display: flex;
+    gap: 0.45rem;
+  }
+
+  .modal-watchlist-btn,
+  .modal-obs-action-btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .modal-body {
+    padding: 1rem 1.15rem 1.5rem;
+    gap: 1.15rem;
+  }
+
+  .plain-language-card {
+    padding: 1.15rem;
+  }
+
+  .tier-headline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
+  }
+
+  .modal-vis-cta-box {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .modal-vis-action-btn {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .approach-tabs-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .approach-tabs-nav {
+    width: 100%;
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .approach-tab-btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.78rem;
+    padding: 0.45rem 0.4rem;
+  }
+
+  .approaches-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+  }
+
+  .approaches-table th,
+  .approaches-table td {
+    font-size: 0.78rem;
+    padding: 0.5rem 0.65rem;
+    white-space: nowrap;
+  }
+
+  /* Visibility Predictor on Mobile */
+  .vis-controls-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .vis-environment-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .vis-timeline-chart {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+  }
+
+  .vis-chart-bars {
+    min-width: 520px; /* guarantees legible hourly bars */
+  }
+
+  .vis-roster-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .vis-filter-pills {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
+  }
+
+  .vis-filter-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .vis-pill-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .vis-roster-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  /* Sky Map on Mobile */
+  .skymap-location-strip {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .skymap-loc-preset {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .skymap-loc-preset select {
+    width: 100%;
+  }
+
+  .skymap-loc-details {
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+  }
+
+  .scrubber-top-info {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .scrubber-controls {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .canvas-dome-frame {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .skymap-canvas {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Watchlist View */
+  .watchlist-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .watchlist-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .watchlist-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .watchlist-card-actions {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Citizen Science Observation Drawer */
+  .obs-drawer-panel {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh;
+    border-radius: 0;
+    border-left: none;
+  }
+
+  .obs-drawer-header {
+    padding: 1.15rem 1.15rem 0.85rem;
+  }
+
+  .obs-drawer-nav {
+    padding: 0.5rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .obs-drawer-body {
+    padding: 1rem 1.15rem 2rem;
+  }
+
+  .obs-coords-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .obs-label-with-action {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  /* Notifications Drawer */
   .notif-drawer {
-    width: 100vw;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh;
+    border-radius: 0;
+    border-left: none;
+  }
+
+  .notif-header {
+    padding: 1.15rem 1.15rem 0.85rem;
+  }
+
+  .notif-toolbar {
+    padding: 0.65rem 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .notif-filter-tabs {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    padding-bottom: 0.25rem;
+  }
+
+  .notif-filter-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .notif-tab-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 0.76rem;
+    padding: 0.3rem 0.65rem;
+  }
+
+  .notif-toolbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .notif-list {
+    padding: 0.85rem 1rem 2rem;
+  }
+
+  /* Astro Deep Links */
+  .astro-links-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .astro-goto-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .goto-copy-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* --- SMALL SMARTPHONES (<= 480px) --- */
+@media (max-width: 480px) {
+  .app-container {
+    padding: 0.65rem 0.5rem 2.5rem;
+    gap: 0.85rem;
+  }
+
+  .brand-title {
+    font-size: 1.25rem;
+  }
+
+  .brand-subtitle {
+    font-size: 0.72rem;
+  }
+
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
+
+  .header-badges {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .user-profile-pill {
+    padding: 0.35rem 0.55rem;
+    gap: 0.35rem;
+  }
+
+  .user-email-text {
+    max-width: 110px;
+    font-size: 0.75rem;
+  }
+
+  .auth-logout-btn {
+    font-size: 0.72rem;
+    padding: 0.2rem 0.45rem;
+  }
+
+  .stats-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-group {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-group select:first-child {
+    grid-column: auto;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .obs-coords-row {
+    grid-template-columns: 1fr;
+  }
+
+  .obs-meta-pills {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .obs-pill {
+    width: 100%;
+  }
+
+  .notif-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .notif-card-meta {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .notif-card-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 0.25rem;
+  }
+
+  .auth-modal-card {
+    padding: 1.25rem 1rem;
+    border-radius: 12px;
+  }
+
+  .pagination-bar {
+    gap: 0.5rem;
+  }
+
+  .page-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.78rem;
+  }
+
+  .page-info {
+    font-size: 0.78rem;
   }
 }
