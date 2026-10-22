@@ -119,6 +119,8 @@ router.get('/', async (req, res) => {
         equipment: vis.equipment,
         estimated_visual_mag: vis.ephemeris.estimated_visual_mag,
         distance_km: vis.ephemeris.distance_km,
+        ra_deg: vis.ephemeris.ra_deg,
+        dec_deg: vis.ephemeris.dec_deg,
         peak_altitude_deg: vis.visibility_window ? vis.visibility_window.peak_altitude_deg : 0,
         peak_azimuth_deg: vis.visibility_window ? vis.visibility_window.peak_azimuth_deg : 180,
         hourly_positions: vis.is_visible ? vis.hourly_altitude.map(h => ({

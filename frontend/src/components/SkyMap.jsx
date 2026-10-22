@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import AstroDeepLinks from './AstroDeepLinks.jsx';
 
 const CITY_PRESETS = [
   { name: 'New Delhi, India', lat: 28.6139, lon: 77.2090 },
@@ -554,6 +555,22 @@ export default function SkyMap({ onSelectNeoDetail, watchlistIds, onToggleWatchl
                 <div className="inspect-gear-box">
                   <span>🔭 {selectedAsteroid.equipment.description}</span>
                 </div>
+
+                {/* External Astronomy Apps & Telescope Deep Links */}
+                <AstroDeepLinks
+                  neo={selectedAsteroid}
+                  coordinates={{
+                    ra_deg: selectedAsteroid.ra_deg,
+                    dec_deg: selectedAsteroid.dec_deg,
+                    altitude_deg: selectedAsteroid.hourly_positions && selectedAsteroid.hourly_positions[timeIndex]
+                      ? selectedAsteroid.hourly_positions[timeIndex].altitude_deg
+                      : selectedAsteroid.peak_altitude_deg,
+                    azimuth_deg: selectedAsteroid.hourly_positions && selectedAsteroid.hourly_positions[timeIndex]
+                      ? selectedAsteroid.hourly_positions[timeIndex].azimuth_deg
+                      : selectedAsteroid.peak_azimuth_deg
+                  }}
+                  compact={true}
+                />
 
                 {onSelectNeoDetail && (
                   <button

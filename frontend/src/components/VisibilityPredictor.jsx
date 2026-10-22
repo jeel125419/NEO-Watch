@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import AstroDeepLinks from './AstroDeepLinks.jsx';
 
 // Popular location presets for stargazing
 const CITY_PRESETS = [
@@ -469,6 +470,20 @@ export default function VisibilityPredictor({ initialNeoId, onSelectNeoModal }) 
                   <span>Sunrise</span>
                 </div>
               </div>
+
+              {/* External Astronomy Apps & Telescope Mount Integration */}
+              <AstroDeepLinks
+                neo={{
+                  id: selectedNeoVisibility.neo_id,
+                  name: selectedNeoVisibility.name,
+                  neo_reference_id: selectedNeoVisibility.reference_id,
+                  ra_deg: selectedNeoVisibility.ephemeris?.ra_deg,
+                  dec_deg: selectedNeoVisibility.ephemeris?.dec_deg,
+                  peak_altitude_deg: selectedNeoVisibility.visibility_window?.peak_altitude_deg,
+                  peak_azimuth_deg: selectedNeoVisibility.visibility_window?.peak_azimuth_deg
+                }}
+                compact={false}
+              />
             </section>
           )}
 

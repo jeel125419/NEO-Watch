@@ -4,6 +4,7 @@ import SkyMap from './components/SkyMap.jsx';
 import AuthModal from './components/AuthModal.jsx';
 import WatchlistView from './components/WatchlistView.jsx';
 import ObservationLogModal from './components/ObservationLogModal.jsx';
+import AstroDeepLinks from './components/AstroDeepLinks.jsx';
 import './App.css';
 
 export default function App() {
@@ -1084,6 +1085,12 @@ export default function App() {
                             </div>
                           );
                         })()}
+
+                        {/* External Astronomy Apps & Telescope GoTo Mount Integration */}
+                        <AstroDeepLinks
+                          neo={selectedNeoDetail}
+                          compact={false}
+                        />
                       </div>
                     )}
                   </section>
