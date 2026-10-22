@@ -6,32 +6,18 @@ import WatchlistView from './components/WatchlistView.jsx';
 import ObservationLogModal from './components/ObservationLogModal.jsx';
 import AstroDeepLinks from './components/AstroDeepLinks.jsx';
 import NotificationCenter from './components/NotificationCenter.jsx';
-import ThemeModal, { THEMES } from './components/ThemeModal.jsx';
+import cosmosHeroImage from './assets/cosmos_hero.jpg';
 import './App.css';
 
 export default function App() {
   const [activeNav, setActiveNav] = useState('catalog'); // 'catalog' | 'visibility' | 'skymap' | 'watchlist'
   const [predictTargetNeoId, setPredictTargetNeoId] = useState(null);
+  const [showPhaEducation, setShowPhaEducation] = useState(false);
 
-  // UI Theme & Template State
-  const [currentTheme, setCurrentTheme] = useState(() => {
-    try {
-      return localStorage.getItem('neo_theme') || 'deep-space';
-    } catch {
-      return 'deep-space';
-    }
-  });
-  const [showThemeModal, setShowThemeModal] = useState(false);
-
-  // Sync theme attribute to document element
+  // Set single locked theme to document element
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', currentTheme);
-    try {
-      localStorage.setItem('neo_theme', currentTheme);
-    } catch (e) {
-      console.warn('Could not persist theme:', e);
-    }
-  }, [currentTheme]);
+    document.documentElement.setAttribute('data-theme', 'deep-space');
+  }, []);
 
   // Authentication & Watchlist State (Phase 7)
   const [currentUser, setCurrentUser] = useState(() => {
@@ -430,11 +416,28 @@ export default function App() {
     }
   };
 
+  const getAsteroidScale = (minKm, maxKm) => {
+    const avgMeters = (((minKm || 0) + (maxKm || minKm || 0)) / 2) * 1000;
+    if (!avgMeters || avgMeters <= 0) {
+      return { icon: '☄️', label: 'Unmeasured Scale', tier: 'unknown', barWidth: '20%' };
+    }
+    if (avgMeters < 60) {
+      return { icon: '🏠', label: 'Building Scale', tier: 'compact', barWidth: '25%' };
+    }
+    if (avgMeters < 250) {
+      return { icon: '🏟️', label: 'Stadium Scale', tier: 'moderate', barWidth: '50%' };
+    }
+    if (avgMeters < 1000) {
+      return { icon: '🏙️', label: 'Skyscraper Scale', tier: 'massive', barWidth: '75%' };
+    }
+    return { icon: '⛰️', label: 'Mountain Scale', tier: 'colossal', barWidth: '95%' };
+  };
+
   return (
     <div className="app-container" id="neo-watch-app">
       {/* Header */}
       <header className="app-header">
-        <div className="brand">
+        <div className="brand" onClick={() => setActiveNav('catalog')} style={{ cursor: 'pointer' }}>
           <div className="brand-icon" aria-hidden="true">☄️</div>
           <div>
             <h1 className="brand-title">NEO Watch</h1>
@@ -443,20 +446,9 @@ export default function App() {
         </div>
 
         <div className="header-badges">
-          <button
-            type="button"
-            id="header-theme-selector-btn"
-            className="header-theme-btn"
-            onClick={() => setShowThemeModal(true)}
-            title="Preview and change UI template / theme style"
-          >
-            <span>🎨</span>
-            <span>{THEMES.find(t => t.id === currentTheme)?.name || 'Theme'}</span>
-          </button>
-
           <div className="status-badge" id="backend-status-badge">
             <span className={`status-dot ${backendHealthy ? 'active' : 'fallback'}`} />
-            <span>Backend: {backendHealthy ? 'Connected' : 'Offline'}</span>
+            <span>{backendHealthy ? 'JPL Feed Connected' : 'Telemetry Offline'}</span>
           </div>
 
           {currentUser ? (
@@ -530,7 +522,7 @@ export default function App() {
           className={`main-nav-btn ${activeNav === 'visibility' ? 'active' : ''}`}
           onClick={() => setActiveNav('visibility')}
         >
-          <span>🔭 Tonight’s Visibility Predictor</span>
+          <span>🔭 Tonight’s Visibility</span>
         </button>
         <button
           id="nav-skymap-btn"
@@ -567,220 +559,322 @@ export default function App() {
       {/* VIEW 1: Asteroid Catalog */}
       {activeNav === 'catalog' && (
         <>
-          {/* Educational Banner */}
-          <section className="info-banner" aria-label="Educational context">
-            <div className="info-icon">🪐</div>
-            <div className="info-text">
-              <h3>Understanding NASA's "Potentially Hazardous Asteroid" Classification</h3>
-              <p>
-                NASA designates a near-Earth object as a <strong>Potentially Hazardous Asteroid (PHA)</strong> if its orbit approaches within <strong>0.05 AU</strong> (approx. 7.5 million km or 19.5 Lunar Distances) of Earth's orbit and its estimated diameter exceeds approximately <strong>140 meters</strong>. This is an administrative threshold used by astronomers to prioritize continuous radar and optical tracking — <em>it does not mean an Earth impact is predicted</em>.
+          {/* Cinematic Cosmos Hero Section */}
+          <section className="cosmos-hero-section" id="cosmos-hero">
+            <div className="cosmos-hero-media">
+              <img
+                src={cosmosHeroImage}
+                alt="Near-Earth asteroid orbital paths in deep space"
+                className="cosmos-hero-img"
+              />
+              <div className="cosmos-hero-gradient-overlay" />
+              <div className="cosmos-hero-ambient-nebula" />
+            </div>
+
+            <div className="cosmos-hero-content">
+              <div className="cosmos-hero-tag">
+                <span className="cosmos-pulse-dot" />
+                <span>Solar System Orbit Telemetry</span>
+              </div>
+
+              <h2 className="cosmos-hero-headline">
+                Wanderers of the Solar System
+              </h2>
+              <p className="cosmos-hero-lead">
+                Explore asteroids traveling near Earth. Real orbital trajectories, close approaches, and stargazing conditions translated for curious minds.
               </p>
+
+              <div className="cosmos-hero-actions">
+                <a href="#neo-catalog-controls" className="cosmos-hero-btn primary">
+                  <span>Explore Catalog</span>
+                  <span className="arrow-icon">↓</span>
+                </a>
+                <button
+                  type="button"
+                  className="cosmos-hero-btn secondary"
+                  onClick={() => setActiveNav('skymap')}
+                >
+                  <span>Sky Map</span>
+                  <span>🌌</span>
+                </button>
+                <button
+                  type="button"
+                  className="cosmos-hero-btn secondary"
+                  onClick={() => setActiveNav('visibility')}
+                >
+                  <span>Tonight's Visibility</span>
+                  <span>🔭</span>
+                </button>
+              </div>
+
+              <div className="cosmos-hero-telemetry-bar">
+                <div className="telemetry-stat">
+                  <span className="t-val">{pagination.total || '80+'}</span>
+                  <span className="t-label">Monitored Asteroids</span>
+                </div>
+                <div className="telemetry-separator" />
+                <div className="telemetry-stat">
+                  <span className="t-val">0.05 AU</span>
+                  <span className="t-label">PHA Proximity Boundary</span>
+                </div>
+                <div className="telemetry-separator" />
+                <div className="telemetry-stat">
+                  <span className="t-val">NASA JPL</span>
+                  <span className="t-label">Precision Orbit Ephemeris</span>
+                </div>
+              </div>
             </div>
           </section>
 
-      {/* Control Card (Search & Filters) */}
-      <section className="controls-card" aria-label="Filters and search">
-        <div className="search-box">
-          <svg className="search-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input
-            id="neo-search-input"
-            type="text"
-            className="search-input"
-            placeholder="Search asteroids by name or ID (e.g. Eros, Geographos)..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {isDebouncing && (
-            <div className="search-status-hint" id="search-debouncing-indicator">
-              <span>⏳ Filtering catalog...</span>
+          {/* Compact Educational Disclosure for NASA PHA Classification */}
+          <section className="pha-disclosure-section" aria-label="Official NASA classification criteria">
+            <button
+              type="button"
+              className="pha-disclosure-toggle"
+              onClick={() => setShowPhaEducation(prev => !prev)}
+              aria-expanded={showPhaEducation}
+              id="pha-education-toggle-btn"
+            >
+              <div className="pha-toggle-left">
+                <span className="pha-toggle-icon">🪐</span>
+                <span className="pha-toggle-title">What is a "Potentially Hazardous Asteroid"?</span>
+              </div>
+              <div className="pha-toggle-right">
+                <span className="pha-toggle-pill">Official NASA Criteria</span>
+                <span className={`pha-chevron ${showPhaEducation ? 'open' : ''}`}>▾</span>
+              </div>
+            </button>
+            {showPhaEducation && (
+              <div className="pha-disclosure-content" id="pha-education-details">
+                <p>
+                  NASA designates a near-Earth object as a <strong>Potentially Hazardous Asteroid (PHA)</strong> if its orbit approaches within <strong>0.05 AU</strong> (approx. 7.5 million km or 19.5 Lunar Distances) of Earth's orbit and its estimated diameter exceeds approximately <strong>140 meters</strong>.
+                </p>
+                <p className="pha-disclosure-note">
+                  This standard threshold is used by astronomers to prioritize continuous radar and optical tracking — <em>it does not mean an Earth impact is predicted</em>.
+                </p>
+              </div>
+            )}
+          </section>
+
+          {/* Catalog Controls (Search & Filter) */}
+          <section className="controls-card" id="neo-catalog-controls" aria-label="Catalog filters and search">
+            <div className="search-box">
+              <svg className="search-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                id="neo-search-input"
+                type="text"
+                className="search-input"
+                placeholder="Search by asteroid name or designation (e.g. Eros, Apophis, Geographos)..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {isDebouncing && (
+                <div className="search-status-hint" id="search-debouncing-indicator">
+                  <span>⏳ Filtering objects...</span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <div className="filters-group">
-          <select
-            id="neo-hazardous-filter"
-            className="filter-select"
-            value={hazardousFilter}
-            onChange={(e) => {
-              setHazardousFilter(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="">All Near-Earth Objects</option>
-            <option value="true">NASA Tracked PHAs Only</option>
-            <option value="false">Standard NEOs (Non-PHA)</option>
-          </select>
-
-          <select
-            id="neo-sort-select"
-            className="filter-select"
-            value={sortBy}
-            onChange={(e) => {
-              setSortBy(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="name">Sort by Name</option>
-            <option value="diameter">Sort by Diameter</option>
-            <option value="magnitude">Sort by Brightness (H)</option>
-            <option value="id">Default (ID)</option>
-          </select>
-
-          <select
-            id="neo-order-select"
-            className="filter-select"
-            value={sortOrder}
-            onChange={(e) => {
-              setSortOrder(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="ASC">Ascending</option>
-            <option value="DESC">Descending</option>
-          </select>
-        </div>
-      </section>
-
-      {/* Quick Stats Strip (Verified Real Data Only) */}
-      <section className="stats-strip" aria-label="Database statistics">
-        <div className="stat-card">
-          <span className="stat-label">Cataloged Near-Earth Objects</span>
-          <span className="stat-value">{pagination.total}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Active Catalog Page</span>
-          <span className="stat-value">{page} / {pagination.totalPages || 1}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Orbit Calculation Ephemeris</span>
-          <span className="stat-value" style={{ fontSize: '1.2rem', color: 'var(--accent-lavender)' }}>
-            NASA JPL HORIZONS
-          </span>
-        </div>
-      </section>
-
-      {/* Asteroids List Grid */}
-      <main>
-        {loading ? (
-          <div className="loading-box" id="loading-state">
-            <div className="spinner" />
-            <p>Scanning NASA Near-Earth Object catalog...</p>
-          </div>
-        ) : error ? (
-          <div className="error-box" id="error-state">
-            <p>⚠️ {error}</p>
-            <button className="page-btn" onClick={() => setPage(1)}>Retry</button>
-          </div>
-        ) : neos.length === 0 ? (
-          <div className="empty-box" id="empty-state">
-            <p>No asteroids match your filter criteria.</p>
-          </div>
-        ) : (
-          <div className="neo-grid" id="neo-items-grid">
-            {neos.map(neo => (
-              <article
-                key={neo.id}
-                id={`neo-card-${neo.id}`}
-                className={`neo-card ${neo.is_potentially_hazardous ? 'pha-tracked' : ''}`}
-                onClick={() => setSelectedNeoId(neo.id)}
+            <div className="filters-group">
+              <select
+                id="neo-hazardous-filter"
+                className="filter-select"
+                value={hazardousFilter}
+                onChange={(e) => {
+                  setHazardousFilter(e.target.value);
+                  setPage(1);
+                }}
               >
-                <div className="neo-card-header">
-                  <div>
-                    <h2 className="neo-card-title">{neo.name}</h2>
-                    <span className="neo-ref-id">Ref #{neo.neo_reference_id}</span>
-                  </div>
+                <option value="">All Near-Earth Objects</option>
+                <option value="true">NASA Tracked PHAs Only</option>
+                <option value="false">Standard NEOs (Non-PHA)</option>
+              </select>
 
-                  <div className="neo-card-actions-cluster">
-                    <button
-                      type="button"
-                      id={`star-btn-${neo.id}`}
-                      className={`star-bookmark-btn ${watchlistIds.has(neo.id) ? 'active' : ''}`}
-                      title={watchlistIds.has(neo.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
-                      onClick={(e) => handleToggleWatchlist(neo.id, e)}
-                      aria-label={watchlistIds.has(neo.id) ? `Remove ${neo.name} from watchlist` : `Add ${neo.name} to watchlist`}
-                    >
-                      {watchlistIds.has(neo.id) ? '★' : '☆'}
-                    </button>
-                    <span className={`hazard-badge ${neo.is_potentially_hazardous ? 'pha-tracked' : 'standard-neo'}`}>
-                      {neo.is_potentially_hazardous ? '⚠️ NASA Tracked PHA' : 'Standard NEO'}
-                    </span>
-                  </div>
-                </div>
+              <select
+                id="neo-sort-select"
+                className="filter-select"
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="name">Sort by Name</option>
+                <option value="diameter">Sort by Diameter</option>
+                <option value="magnitude">Sort by Brightness (H)</option>
+                <option value="id">Default (ID)</option>
+              </select>
 
-                <div className="neo-quick-metrics">
-                  <div className="quick-metric">
-                    <span className="qm-label">Estimated Size</span>
-                    <span className="qm-value">{formatDiameter(neo.estimated_diameter_min_km, neo.estimated_diameter_max_km)}</span>
-                  </div>
-                  <div className="quick-metric">
-                    <span className="qm-label">Brightness</span>
-                    <span className="qm-value">{neo.absolute_magnitude_h ? `${neo.absolute_magnitude_h} H` : 'N/A'}</span>
-                  </div>
-                </div>
+              <select
+                id="neo-order-select"
+                className="filter-select"
+                value={sortOrder}
+                onChange={(e) => {
+                  setSortOrder(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="ASC">Ascending</option>
+                <option value="DESC">Descending</option>
+              </select>
+            </div>
+          </section>
 
-                <div className="neo-card-footer">
-                  <div className="card-encounter-preview">
-                    <span className="card-encounter-label">Closest Approach: </span>
-                    <strong className="card-encounter-val">
-                      {neo.closest_miss_distance_km ? formatKm(neo.closest_miss_distance_km) : 'Historical'}
-                    </strong>
-                    {neo.closest_miss_distance_km && (
-                      <span className="card-ld-note"> ({formatLunarDistance(neo.closest_miss_distance_km)})</span>
-                    )}
-                  </div>
-                  <div className="card-footer-actions">
-                    <button
-                      type="button"
-                      className="card-vis-btn"
-                      title="Check tonight's sky visibility from your location"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setPredictTargetNeoId(neo.id);
-                        setActiveNav('visibility');
-                      }}
-                    >
-                      🔭 Stargaze
-                    </button>
-                    <span className="card-view-cta">
-                      Details &rarr;
-                    </span>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-
-        {/* Pagination Bar */}
-        {!loading && pagination.totalPages > 1 && (
-          <nav className="pagination-bar" aria-label="Pagination Navigation">
-            <button
-              id="prev-page-btn"
-              className="page-btn"
-              disabled={page <= 1}
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-            >
-              &larr; Previous
-            </button>
-            <span className="page-info">
-              Page {page} of {pagination.totalPages}
+          {/* Catalog Navigation Strip (Human Counters) */}
+          <div className="catalog-meta-strip" aria-label="Catalog status">
+            <span className="catalog-meta-count">
+              Showing <strong>{neos.length}</strong> of <strong>{pagination.total}</strong> cataloged objects
             </span>
-            <button
-              id="next-page-btn"
-              className="page-btn"
-              disabled={page >= pagination.totalPages}
-              onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
-            >
-              Next &rarr;
-            </button>
-          </nav>
-        )}
-      </main>
-      </>
+            <span className="catalog-meta-page">
+              Page {page} of {pagination.totalPages || 1}
+            </span>
+          </div>
+
+          {/* Asteroids List Grid */}
+          <main>
+            {loading ? (
+              <div className="loading-box" id="loading-state">
+                <div className="spinner" />
+                <p>Retrieving celestial trajectories from NASA catalog...</p>
+              </div>
+            ) : error ? (
+              <div className="error-box" id="error-state">
+                <p>⚠️ {error}</p>
+                <button className="page-btn" onClick={() => setPage(1)}>Retry</button>
+              </div>
+            ) : neos.length === 0 ? (
+              <div className="empty-box" id="empty-state">
+                <p>No asteroids match your filter criteria.</p>
+              </div>
+            ) : (
+              <div className="neo-grid" id="neo-items-grid">
+                {neos.map(neo => {
+                  const scale = getAsteroidScale(neo.estimated_diameter_min_km, neo.estimated_diameter_max_km);
+                  const isPha = Boolean(neo.is_potentially_hazardous);
+
+                  return (
+                    <article
+                      key={neo.id}
+                      id={`neo-card-${neo.id}`}
+                      className={`neo-card ${isPha ? 'pha-tracked' : ''}`}
+                      onClick={() => setSelectedNeoId(neo.id)}
+                    >
+                      <div className="neo-card-header">
+                        <div className="card-identity-group">
+                          <span className="neo-ref-id">REF #{neo.neo_reference_id}</span>
+                          <h3 className="neo-card-title">{neo.name}</h3>
+                        </div>
+
+                        <div className="neo-card-actions-cluster">
+                          <button
+                            type="button"
+                            id={`star-btn-${neo.id}`}
+                            className={`star-bookmark-btn ${watchlistIds.has(neo.id) ? 'active' : ''}`}
+                            title={watchlistIds.has(neo.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                            onClick={(e) => handleToggleWatchlist(neo.id, e)}
+                            aria-label={watchlistIds.has(neo.id) ? `Remove ${neo.name} from watchlist` : `Add ${neo.name} to watchlist`}
+                          >
+                            {watchlistIds.has(neo.id) ? '★' : '☆'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Visual Scale Indicator Bar */}
+                      <div className="card-scale-indicator">
+                        <div className="scale-meta-row">
+                          <span className="scale-label-tag">
+                            <span className="scale-icon">{scale.icon}</span>
+                            <span>{scale.label}</span>
+                          </span>
+                          <span className="scale-size-text">
+                            {formatDiameter(neo.estimated_diameter_min_km, neo.estimated_diameter_max_km)}
+                          </span>
+                        </div>
+                        <div className="scale-track">
+                          <div
+                            className={`scale-progress-bar ${scale.tier}`}
+                            style={{ width: scale.barWidth }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="neo-quick-metrics">
+                        <div className="quick-metric">
+                          <span className="qm-label">Closest Flyby</span>
+                          <span className="qm-value">
+                            {neo.closest_miss_distance_km ? formatKm(neo.closest_miss_distance_km) : 'Historical Record'}
+                          </span>
+                          {neo.closest_miss_distance_km && (
+                            <span className="qm-subnote">
+                              {formatLunarDistance(neo.closest_miss_distance_km).replace(/[()~]/g, '').trim()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="quick-metric">
+                          <span className="qm-label">Brightness</span>
+                          <span className="qm-value">{neo.absolute_magnitude_h ? `${neo.absolute_magnitude_h} H` : 'N/A'}</span>
+                          <span className="qm-subnote">Absolute Magnitude</span>
+                        </div>
+                      </div>
+
+                      <div className="neo-card-footer">
+                        <span className={`hazard-badge ${isPha ? 'pha-tracked' : 'standard-neo'}`}>
+                          {isPha ? '⚠️ NASA Tracked PHA' : 'Standard NEO'}
+                        </span>
+
+                        <div className="card-footer-actions">
+                          <button
+                            type="button"
+                            className="card-vis-btn"
+                            title="Check tonight's sky visibility from your location"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPredictTargetNeoId(neo.id);
+                              setActiveNav('visibility');
+                            }}
+                          >
+                            🔭 Stargaze
+                          </button>
+                          <span className="card-view-cta">
+                            Details &rarr;
+                          </span>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Pagination Bar */}
+            {!loading && pagination.totalPages > 1 && (
+              <nav className="pagination-bar" aria-label="Pagination Navigation">
+                <button
+                  id="prev-page-btn"
+                  className="page-btn"
+                  disabled={page <= 1}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                >
+                  &larr; Previous
+                </button>
+                <span className="page-info">
+                  Page {page} of {pagination.totalPages}
+                </span>
+                <button
+                  id="next-page-btn"
+                  className="page-btn"
+                  disabled={page >= pagination.totalPages}
+                  onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                >
+                  Next &rarr;
+                </button>
+              </nav>
+            )}
+          </main>
+        </>
       )}
 
       {/* VIEW 2: Tonight's Visibility Predictor (Phase 5) */}
@@ -1212,14 +1306,6 @@ export default function App() {
         onSelectNeo={(id) => setSelectedNeoId(id)}
         onRequireAuth={() => setShowAuthModal(true)}
         onNotificationsChanged={(unread) => setUnreadNotifCount(unread)}
-      />
-
-      {/* Theme & Template Switcher Modal */}
-      <ThemeModal
-        isOpen={showThemeModal}
-        onClose={() => setShowThemeModal(false)}
-        currentTheme={currentTheme}
-        onSelectTheme={(themeId) => setCurrentTheme(themeId)}
       />
     </div>
   );
