@@ -1,4 +1,5 @@
-:root {
+/* Default: Cosmic Deep Space */
+:root, [data-theme="deep-space"] {
   --bg-space: #070a12;
   --bg-surface: #0e1424;
   --bg-card: rgba(18, 25, 44, 0.75);
@@ -23,6 +24,112 @@
 
   --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
   --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.2);
+  --bg-grad-1: rgba(99, 102, 241, 0.08);
+  --bg-grad-2: rgba(6, 182, 212, 0.06);
+}
+
+/* 2. NASA Mission Control (Tactical Aerospace HUD) */
+[data-theme="mission-control"] {
+  --bg-space: #04080e;
+  --bg-surface: #0a111a;
+  --bg-card: rgba(12, 21, 32, 0.85);
+  --bg-card-hover: rgba(18, 32, 48, 0.95);
+  --bg-glass: rgba(10, 18, 28, 0.8);
+  --border-subtle: rgba(56, 189, 248, 0.16);
+  --border-glow: rgba(56, 189, 248, 0.4);
+
+  --text-primary: #e0f2fe;
+  --text-secondary: #7dd3fc;
+  --text-muted: #64748b;
+
+  --accent-indigo: #0284c7;
+  --accent-cyan: #38bdf8;
+  --hazard-low: #10b981;
+  --hazard-med: #f59e0b;
+  --hazard-high: #f43f5e;
+
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.65), 0 8px 10px -6px rgba(2, 132, 199, 0.2);
+  --shadow-glow: 0 0 20px rgba(56, 189, 248, 0.25);
+  --bg-grad-1: rgba(2, 132, 199, 0.12);
+  --bg-grad-2: rgba(16, 185, 129, 0.08);
+}
+
+/* 3. Cyber Nebula (Electric Synthwave & Deep Violet) */
+[data-theme="cyber-nebula"] {
+  --bg-space: #080414;
+  --bg-surface: #100824;
+  --bg-card: rgba(22, 12, 48, 0.82);
+  --bg-card-hover: rgba(36, 20, 78, 0.92);
+  --bg-glass: rgba(20, 10, 42, 0.72);
+  --border-subtle: rgba(168, 85, 247, 0.22);
+  --border-glow: rgba(236, 72, 153, 0.45);
+
+  --text-primary: #fdf4ff;
+  --text-secondary: #d8b4fe;
+  --text-muted: #9333ea;
+
+  --accent-indigo: #9333ea;
+  --accent-cyan: #ec4899;
+  --hazard-low: #06b6d4;
+  --hazard-med: #f59e0b;
+  --hazard-high: #f43f5e;
+
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(168, 85, 247, 0.3);
+  --shadow-glow: 0 0 24px rgba(236, 72, 153, 0.25);
+  --bg-grad-1: rgba(168, 85, 247, 0.14);
+  --bg-grad-2: rgba(236, 72, 153, 0.1);
+}
+
+/* 4. Stargazer Night-Vision (Pure Astronomical Red Dark-Adapted) */
+[data-theme="night-vision"] {
+  --bg-space: #050002;
+  --bg-surface: #120205;
+  --bg-card: rgba(26, 4, 8, 0.85);
+  --bg-card-hover: rgba(42, 8, 14, 0.95);
+  --bg-glass: rgba(20, 3, 6, 0.78);
+  --border-subtle: rgba(239, 68, 68, 0.22);
+  --border-glow: rgba(239, 68, 68, 0.45);
+
+  --text-primary: #fecdd3;
+  --text-secondary: #f43f5e;
+  --text-muted: #9f1239;
+
+  --accent-indigo: #dc2626;
+  --accent-cyan: #fb7185;
+  --hazard-low: #e11d48;
+  --hazard-med: #f97316;
+  --hazard-high: #ff0000;
+
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(220, 38, 38, 0.25);
+  --shadow-glow: 0 0 20px rgba(239, 68, 68, 0.3);
+  --bg-grad-1: rgba(220, 38, 38, 0.12);
+  --bg-grad-2: rgba(159, 18, 57, 0.08);
+}
+
+/* 5. Solar Flare (Parker Solar Probe Gold & Amber) */
+[data-theme="solar-flare"] {
+  --bg-space: #0a0703;
+  --bg-surface: #140e06;
+  --bg-card: rgba(28, 18, 8, 0.85);
+  --bg-card-hover: rgba(44, 28, 14, 0.95);
+  --bg-glass: rgba(24, 15, 6, 0.75);
+  --border-subtle: rgba(245, 158, 11, 0.18);
+  --border-glow: rgba(245, 158, 11, 0.4);
+
+  --text-primary: #fffbeb;
+  --text-secondary: #fde68a;
+  --text-muted: #92400e;
+
+  --accent-indigo: #d97706;
+  --accent-cyan: #f59e0b;
+  --hazard-low: #84cc16;
+  --hazard-med: #f59e0b;
+  --hazard-high: #ef4444;
+
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.75), 0 8px 10px -6px rgba(245, 158, 11, 0.2);
+  --shadow-glow: 0 0 20px rgba(245, 158, 11, 0.25);
+  --bg-grad-1: rgba(245, 158, 11, 0.12);
+  --bg-grad-2: rgba(234, 88, 12, 0.08);
 }
 
 * {
@@ -44,9 +151,10 @@ body {
   min-height: 100vh;
   line-height: 1.5;
   background-image: 
-    radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.06) 0%, transparent 45%);
+    radial-gradient(circle at 15% 15%, var(--bg-grad-1) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, var(--bg-grad-2) 0%, transparent 45%);
   background-attachment: fixed;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 img, canvas, svg, video {

@@ -6,11 +6,32 @@ import WatchlistView from './components/WatchlistView.jsx';
 import ObservationLogModal from './components/ObservationLogModal.jsx';
 import AstroDeepLinks from './components/AstroDeepLinks.jsx';
 import NotificationCenter from './components/NotificationCenter.jsx';
+import ThemeModal, { THEMES } from './components/ThemeModal.jsx';
 import './App.css';
 
 export default function App() {
   const [activeNav, setActiveNav] = useState('catalog'); // 'catalog' | 'visibility' | 'skymap' | 'watchlist'
   const [predictTargetNeoId, setPredictTargetNeoId] = useState(null);
+
+  // UI Theme & Template State
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    try {
+      return localStorage.getItem('neo_theme') || 'deep-space';
+    } catch {
+      return 'deep-space';
+    }
+  });
+  const [showThemeModal, setShowThemeModal] = useState(false);
+
+  // Sync theme attribute to document element
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    try {
+      localStorage.setItem('neo_theme', currentTheme);
+    } catch (e) {
+      console.warn('Could not persist theme:', e);
+    }
+  }, [currentTheme]);
 
   // Authentication & Watchlist State (Phase 7)
   const [currentUser, setCurrentUser] = useState(() => {
@@ -422,6 +443,17 @@ export default function App() {
         </div>
 
         <div className="header-badges">
+          <button
+            type="button"
+            id="header-theme-selector-btn"
+            className="header-theme-btn"
+            onClick={() => setShowThemeModal(true)}
+            title="Preview and change UI template / theme style"
+          >
+            <span>🎨</span>
+            <span>{THEMES.find(t => t.id === currentTheme)?.name || 'Theme'}</span>
+          </button>
+
           <div className="status-badge" id="backend-status-badge">
             <span className={`status-dot ${backendHealthy ? 'active' : 'fallback'}`} />
             <span>Backend: {backendHealthy ? 'Connected' : 'Offline'}</span>
@@ -1189,6 +1221,14 @@ export default function App() {
         onSelectNeo={(id) => setSelectedNeoId(id)}
         onRequireAuth={() => setShowAuthModal(true)}
         onNotificationsChanged={(unread) => setUnreadNotifCount(unread)}
+      />
+
+      {/* Theme & Template Switcher Modal */}
+      <ThemeModal
+        isOpen={showThemeModal}
+        onClose={() => setShowThemeModal(false)}
+        currentTheme={currentTheme}
+        onSelectTheme={(themeId) => setCurrentTheme(themeId)}
       />
     </div>
   );
