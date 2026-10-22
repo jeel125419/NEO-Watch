@@ -63,3 +63,6 @@ CREATE TABLE IF NOT EXISTS observations (
     long DOUBLE PRECISION NOT NULL,
     notes TEXT
 );
+
+CREATE INDEX IF NOT EXISTS idx_observations_user_id ON observations(user_id);
+CREATE INDEX IF NOT EXISTS idx_observations_neo_id ON observations(neo_object_id);

@@ -6,7 +6,9 @@ export default function WatchlistView({
   onSelectNeo,
   onSwitchNav,
   onPredictTarget,
-  onWatchlistChanged
+  onWatchlistChanged,
+  onLogObservation,
+  obsCountByNeo = {}
 }) {
   const [watchlist, setWatchlist] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -243,6 +245,11 @@ export default function WatchlistView({
                   <span className="neo-ref-id">Ref #{neo.neo_reference_id}</span>
                 </div>
                 <div className="watchlist-card-badges">
+                  {obsCountByNeo[neo.id] > 0 && (
+                    <span className="obs-count-badge" title={`${obsCountByNeo[neo.id]} observations logged`}>
+                      👁 {obsCountByNeo[neo.id]} Sightings
+                    </span>
+                  )}
                   <span className={`hazard-badge ${neo.is_potentially_hazardous ? 'high' : 'low'}`}>
                     {neo.is_potentially_hazardous ? '⚠️ Tracked Hazard' : '🛡️ Low Risk'}
                   </span>
@@ -309,6 +316,17 @@ export default function WatchlistView({
                   }}
                 >
                   🌌 Sky Map
+                </button>
+                <button
+                  type="button"
+                  className="card-action-btn secondary obs-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onLogObservation) onLogObservation(neo);
+                  }}
+                  title="Log an observation sighting for this asteroid"
+                >
+                  📓 Log Sighting
                 </button>
               </div>
 

@@ -5,6 +5,7 @@ import neosRouter, { handleRiskScore } from './routes/neos.js';
 import visibilityRouter from './routes/visibility.js';
 import authRouter from './routes/auth.js';
 import watchlistRouter from './routes/watchlist.js';
+import observationsRouter from './routes/observations.js';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRouter);
 app.use('/api/watchlist', watchlistRouter);
+app.use('/api/observations', observationsRouter);
 app.use('/api/neos', neosRouter);
 app.use('/api/visibility', visibilityRouter);
 

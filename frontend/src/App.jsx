@@ -3,6 +3,7 @@ import VisibilityPredictor from './components/VisibilityPredictor.jsx';
 import SkyMap from './components/SkyMap.jsx';
 import AuthModal from './components/AuthModal.jsx';
 import WatchlistView from './components/WatchlistView.jsx';
+import ObservationLogModal from './components/ObservationLogModal.jsx';
 import './App.css';
 
 export default function App() {
@@ -21,6 +22,12 @@ export default function App() {
   const [token, setToken] = useState(() => localStorage.getItem('neo_token') || null);
   const [watchlistIds, setWatchlistIds] = useState(new Set());
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Citizen Science Observations State (Phase 8)
+  const [showObsModal, setShowObsModal] = useState(false);
+  const [obsTargetNeo, setObsTargetNeo] = useState(null);
+  const [totalObsCount, setTotalObsCount] = useState(0);
+  const [obsCountByNeo, setObsCountByNeo] = useState({});
 
   const [neos, setNeos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -85,6 +92,45 @@ export default function App() {
       });
   }, [token]);
 
+  // Sync Observations count & distribution when authenticated (Phase 8)
+  const fetchObservationStats = () => {
+    if (!token) {
+      setTotalObsCount(0);
+      setObsCountByNeo({});
+      return;
+    }
+
+    fetch('/api/observations', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+      .then(res => {
+        if (res.status === 401) {
+          handleLogout();
+          throw new Error('Session expired');
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data.observations && Array.isArray(data.observations)) {
+          setTotalObsCount(data.observations.length);
+          const counts = {};
+          for (const obs of data.observations) {
+            counts[obs.neo_object_id] = (counts[obs.neo_object_id] || 0) + 1;
+          }
+          setObsCountByNeo(counts);
+        }
+      })
+      .catch(err => {
+        console.warn('[Observations Sync]', err.message);
+      });
+  };
+
+  useEffect(() => {
+    fetchObservationStats();
+  }, [token]);
+
   const handleAuthSuccess = (userData, userToken) => {
     setCurrentUser(userData);
     setToken(userToken);
@@ -100,6 +146,8 @@ export default function App() {
     setCurrentUser(null);
     setToken(null);
     setWatchlistIds(new Set());
+    setTotalObsCount(0);
+    setObsCountByNeo({});
     try {
       localStorage.removeItem('neo_user');
       localStorage.removeItem('neo_token');
@@ -109,6 +157,19 @@ export default function App() {
     if (activeNav === 'watchlist') {
       setActiveNav('catalog');
     }
+  };
+
+  const handleOpenObservationModal = (targetNeo = null) => {
+    if (!currentUser || !token) {
+      setShowAuthModal(true);
+      return;
+    }
+    setObsTargetNeo(targetNeo ? { id: targetNeo.id, name: targetNeo.name } : null);
+    setShowObsModal(true);
+  };
+
+  const handleObservationAdded = () => {
+    fetchObservationStats();
   };
 
   const handleToggleWatchlist = async (neoId, e) => {
@@ -339,6 +400,14 @@ export default function App() {
               </button>
               <button
                 type="button"
+                className="obs-quick-badge"
+                title="Open Citizen Science Observation Log"
+                onClick={() => handleOpenObservationModal(null)}
+              >
+                📓 {totalObsCount}
+              </button>
+              <button
+                type="button"
                 className="auth-logout-btn"
                 title="Sign out of your account"
                 onClick={handleLogout}
@@ -398,6 +467,14 @@ export default function App() {
           }}
         >
           <span>⭐ My Watchlist {currentUser && watchlistIds.size > 0 ? `(${watchlistIds.size})` : ''}</span>
+        </button>
+        <button
+          id="nav-observations-btn"
+          type="button"
+          className="main-nav-btn obs-nav-trigger"
+          onClick={() => handleOpenObservationModal(null)}
+        >
+          <span>📓 Observation Log {currentUser && totalObsCount > 0 ? `(${totalObsCount})` : ''}</span>
         </button>
       </nav>
 
@@ -651,6 +728,8 @@ export default function App() {
               return next;
             });
           }}
+          onLogObservation={(neo) => handleOpenObservationModal(neo)}
+          obsCountByNeo={obsCountByNeo}
         />
       )}
 
@@ -675,16 +754,30 @@ export default function App() {
                   <div className="modal-title-group">
                     <div className="modal-title-row">
                       <h2>{selectedNeoDetail.name}</h2>
-                      <button
-                        type="button"
-                        id="modal-watchlist-toggle-btn"
-                        className={`modal-watchlist-btn ${watchlistIds.has(selectedNeoDetail.id) ? 'active' : ''}`}
-                        onClick={(e) => handleToggleWatchlist(selectedNeoDetail.id, e)}
-                        title={watchlistIds.has(selectedNeoDetail.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
-                      >
-                        <span>{watchlistIds.has(selectedNeoDetail.id) ? '★' : '☆'}</span>
-                        <span>{watchlistIds.has(selectedNeoDetail.id) ? 'Tracked in Watchlist' : 'Track in Watchlist'}</span>
-                      </button>
+                      <div className="modal-actions-toolbar">
+                        <button
+                          type="button"
+                          id="modal-watchlist-toggle-btn"
+                          className={`modal-watchlist-btn ${watchlistIds.has(selectedNeoDetail.id) ? 'active' : ''}`}
+                          onClick={(e) => handleToggleWatchlist(selectedNeoDetail.id, e)}
+                          title={watchlistIds.has(selectedNeoDetail.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                        >
+                          <span>{watchlistIds.has(selectedNeoDetail.id) ? '★' : '☆'}</span>
+                          <span>{watchlistIds.has(selectedNeoDetail.id) ? 'Tracked' : 'Watchlist'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          id="modal-obs-log-btn"
+                          className="modal-obs-action-btn"
+                          onClick={() => handleOpenObservationModal(selectedNeoDetail)}
+                          title="Record an amateur telescope or optical observation"
+                        >
+                          <span>📓 Log Sighting</span>
+                          {obsCountByNeo[selectedNeoDetail.id] > 0 && (
+                            <span className="modal-pill-badge">{obsCountByNeo[selectedNeoDetail.id]}</span>
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <span className="neo-ref-id">NASA NeoWs Reference ID: {selectedNeoDetail.neo_reference_id}</span>
                   </div>
@@ -1006,6 +1099,21 @@ export default function App() {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onSuccess={handleAuthSuccess}
+      />
+
+      {/* Phase 8: Citizen Science Observation Log Modal Drawer */}
+      <ObservationLogModal
+        isOpen={showObsModal}
+        onClose={() => {
+          setShowObsModal(false);
+          setObsTargetNeo(null);
+        }}
+        token={token}
+        currentUser={currentUser}
+        preselectedNeoId={obsTargetNeo?.id}
+        preselectedNeoName={obsTargetNeo?.name}
+        onObservationAdded={handleObservationAdded}
+        onRequireAuth={() => setShowAuthModal(true)}
       />
     </div>
   );
