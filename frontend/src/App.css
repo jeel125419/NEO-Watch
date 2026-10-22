@@ -3585,6 +3585,19 @@
   transform: translateY(-1px);
 }
 
+.astro-pill-btn.mpc-link {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.35);
+  color: #fb923c;
+}
+
+.astro-pill-btn.mpc-link:hover {
+  background: rgba(249, 115, 22, 0.28);
+  border-color: #fb923c;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
 .astro-pill-btn.goto-copy {
   background: rgba(234, 179, 8, 0.12);
   border-color: rgba(234, 179, 8, 0.35);

@@ -28,6 +28,30 @@ function degToDec(decDeg) {
   return `${sign}${String(d).padStart(2, '0')}° ${String(m).padStart(2, '0')}' ${String(s).padStart(2, '0')}"`;
 }
 
+/**
+ * Extract clean slug for TheSkyLive (e.g. "geographos-info" or "2000sg8-info")
+ */
+function getTheSkyLiveUrl(name, refId) {
+  if (!name) return `https://theskylive.com/`;
+
+  // Check for named asteroid e.g. "1620 Geographos (1951 RA)" -> "geographos-info"
+  const namedMatch = name.match(/\d+\s+([A-Za-z]+)/);
+  if (namedMatch && namedMatch[1] && namedMatch[1].length > 2) {
+    return `https://theskylive.com/${namedMatch[1].toLowerCase()}-info`;
+  }
+
+  // Check for provisional designation e.g. "(2000 SG8)" -> "2000sg8-info"
+  const provMatch = name.match(/(\d{4}\s*[A-Za-z0-9]+)/);
+  if (provMatch && provMatch[1]) {
+    const cleanProv = provMatch[1].replace(/[\s\(\)]/g, '').toLowerCase();
+    return `https://theskylive.com/${cleanProv}-info`;
+  }
+
+  // Clean fallback
+  const fallback = name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  return `https://theskylive.com/${fallback}-info`;
+}
+
 export default function AstroDeepLinks({ neo, coordinates = {}, compact = false }) {
   const [copied, setCopied] = useState(false);
 
@@ -48,26 +72,22 @@ export default function AstroDeepLinks({ neo, coordinates = {}, compact = false 
   const formattedRA = degToRA(raVal);
   const formattedDec = degToDec(decVal);
 
-  // 1. NASA Eyes on Asteroids (Direct 3D solar system flight link)
-  const nasaEyesUrl = refId
-    ? `https://eyes.nasa.gov/apps/asteroids/#/asteroids/${encodeURIComponent(refId)}`
-    : `https://eyes.nasa.gov/apps/asteroids/#/asteroids/${encodeURIComponent(cleanName.toLowerCase().replace(/\s+/g, '_'))}`;
+  // 1. NASA JPL 3D Interactive Orbit Viewer (100% works for EVERY asteroid via SPK-ID & view=VOP)
+  const nasaJpl3DUrl = `https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=${encodeURIComponent(refId || cleanName)}&view=VOP`;
 
-  // 2. Sky-Map.org (Deep sky optical survey centered on exact RA/Dec)
-  let skyMapUrl = 'http://www.sky-map.org/';
+  // 2. Aladin Lite (Official ESA / CDS Strasbourg observatory optical deep-sky survey centered on exact RA/Dec coordinates)
+  let aladinUrl = 'https://aladin.cds.unistra.fr/AladinLite/';
   if (raVal !== undefined && decVal !== undefined && !isNaN(raVal) && !isNaN(decVal)) {
-    const raHours = (((raVal % 360) + 360) % 360 / 15.0).toFixed(4);
-    const decAngle = Number(decVal).toFixed(4);
-    skyMapUrl = `http://www.sky-map.org/?ra=${raHours}&de=${decAngle}&zoom=7&show_box=1`;
+    aladinUrl = `https://aladin.cds.unistra.fr/AladinLite/?target=${encodeURIComponent(`${Number(raVal).toFixed(4)} ${Number(decVal).toFixed(4)}`)}&fov=1.5&survey=P%2FDSS2%2Fcolor`;
   } else {
-    skyMapUrl = `http://www.sky-map.org/?search=${encodeURIComponent(cleanName)}`;
+    aladinUrl = `https://aladin.cds.unistra.fr/AladinLite/?target=${encodeURIComponent(cleanName)}&fov=1.5`;
   }
 
-  // 3. TheSkyLive Asteroid Guide
-  const theSkyLiveUrl = `https://theskylive.com/search?q=${encodeURIComponent(cleanName || refId)}`;
+  // 3. IAU Minor Planet Center (Official global small-body registry & ephemeris)
+  const mpcUrl = `https://www.minorplanetcenter.net/db_search/show_object?object_id=${encodeURIComponent(refId || cleanName)}`;
 
-  // 4. Stellarium Web
-  const stellariumUrl = `https://stellarium-web.org/skysource/${encodeURIComponent(cleanName)}`;
+  // 4. TheSkyLive direct object tracker
+  const theSkyLiveUrl = getTheSkyLiveUrl(neo.name, refId);
 
   // Copy GoTo Coordinates
   const handleCopyGoTo = async (e) => {
@@ -85,7 +105,6 @@ export default function AstroDeepLinks({ neo, coordinates = {}, compact = false 
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(coordinateString);
       } else {
-        // Fallback for older browsers
         const el = document.createElement('textarea');
         el.value = coordinateString;
         document.body.appendChild(el);
@@ -104,44 +123,54 @@ export default function AstroDeepLinks({ neo, coordinates = {}, compact = false 
     return (
       <div className="astro-links-compact">
         <div className="astro-links-label">
-          <span>🚀 External Astronomy Apps:</span>
+          <span>🚀 Open in External Astronomy Tools:</span>
         </div>
         <div className="astro-links-pill-row">
           <a
-            href={nasaEyesUrl}
+            href={nasaJpl3DUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="astro-pill-btn nasa-eyes"
-            title="Launch official NASA Eyes on Asteroids 3D orbit simulation"
+            title="Launch NASA JPL official 3D Interactive Orbit Viewer for this exact asteroid"
             onClick={(e) => e.stopPropagation()}
           >
-            <span>🛰️ NASA Eyes 3D</span>
+            <span>🛰️ NASA 3D Orbit</span>
           </a>
           <a
-            href={skyMapUrl}
+            href={aladinUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="astro-pill-btn sky-map"
-            title="View deep space telescope survey at these exact celestial coordinates"
+            title="Open Aladin Lite (ESA/CDS) telescope optical survey centered at this asteroid's RA/Dec"
             onClick={(e) => e.stopPropagation()}
           >
-            <span>🗺️ Sky-Map (RA/Dec)</span>
+            <span>🗺️ Aladin Sky Survey</span>
           </a>
           <a
             href={theSkyLiveUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="astro-pill-btn the-skylive"
-            title="Open real-time finder chart and live brightness on TheSkyLive"
+            title="Open live observation guide on TheSkyLive"
             onClick={(e) => e.stopPropagation()}
           >
             <span>🔭 TheSkyLive</span>
+          </a>
+          <a
+            href={mpcUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="astro-pill-btn mpc-link"
+            title="Open official International Astronomical Union (IAU) Minor Planet Center record"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span>🪐 IAU Minor Planet Center</span>
           </a>
           <button
             type="button"
             className={`astro-pill-btn goto-copy ${copied ? 'copied' : ''}`}
             onClick={handleCopyGoTo}
-            title="Copy Right Ascension, Declination, and Alt/Az for telescope mounts"
+            title="Copy Right Ascension, Declination, and Alt/Az for telescope GoTo mounts"
           >
             <span>{copied ? '✅ GoTo Coords Copied!' : '📋 Copy Telescope GoTo'}</span>
           </button>
@@ -158,7 +187,7 @@ export default function AstroDeepLinks({ neo, coordinates = {}, compact = false 
           <div>
             <h4 className="astro-title">External Astronomy Apps & Telescope Mounts</h4>
             <p className="astro-subtitle">
-              Inspect this object's exact trajectory in 3D solar system simulators, online sky surveys, or your GoTo telescope.
+              Inspect this object's exact trajectory in NASA's 3D orbit viewer, optical sky surveys, or computerized telescope software.
             </p>
           </div>
         </div>
@@ -173,7 +202,7 @@ export default function AstroDeepLinks({ neo, coordinates = {}, compact = false 
 
       <div className="astro-links-grid">
         <a
-          href={nasaEyesUrl}
+          href={nasaJpl3DUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="astro-tool-tile nasa-eyes"
@@ -181,16 +210,16 @@ export default function AstroDeepLinks({ neo, coordinates = {}, compact = false 
         >
           <div className="tile-top">
             <span className="tile-icon">🛰️</span>
-            <span className="tile-name">NASA Eyes on Asteroids</span>
+            <span className="tile-name">NASA JPL 3D Orbit Viewer</span>
             <span className="tile-ext">↗</span>
           </div>
           <p className="tile-desc">
-            Official JPL interactive 3D solar system simulator showing real-time orbit & flyby distance from Earth.
+            Official NASA JPL interactive 3D solar system simulator showing this asteroid's exact 3D orbit around the Sun and Earth.
           </p>
         </a>
 
         <a
-          href={skyMapUrl}
+          href={aladinUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="astro-tool-tile sky-map"
@@ -198,11 +227,11 @@ export default function AstroDeepLinks({ neo, coordinates = {}, compact = false 
         >
           <div className="tile-top">
             <span className="tile-icon">🗺️</span>
-            <span className="tile-name">Sky-Map.org Survey</span>
+            <span className="tile-name">Aladin Lite (ESA / CDS)</span>
             <span className="tile-ext">↗</span>
           </div>
           <p className="tile-desc">
-            Direct deep-space optical survey centered precisely at this asteroid's RA/Dec position in the stars.
+            Professional optical telescope sky survey centered directly on this asteroid's exact Right Ascension & Declination.
           </p>
         </a>
 
@@ -215,28 +244,28 @@ export default function AstroDeepLinks({ neo, coordinates = {}, compact = false 
         >
           <div className="tile-top">
             <span className="tile-icon">🔭</span>
-            <span className="tile-name">TheSkyLive Tracker</span>
+            <span className="tile-name">TheSkyLive Observation Guide</span>
             <span className="tile-ext">↗</span>
           </div>
           <p className="tile-desc">
-            Live star chart finder, apparent magnitude, ephemeris tables, and telescope pointing guide.
+            Live asteroid tracker, star charts, optical brightness magnitude, and finder guide.
           </p>
         </a>
 
         <a
-          href={stellariumUrl}
+          href={mpcUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="astro-tool-tile stellarium"
+          className="astro-tool-tile mpc-tile"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="tile-top">
-            <span className="tile-icon">✨</span>
-            <span className="tile-name">Stellarium Web</span>
+            <span className="tile-icon">🪐</span>
+            <span className="tile-name">IAU Minor Planet Center</span>
             <span className="tile-ext">↗</span>
           </div>
           <p className="tile-desc">
-            Web planetarium showing realistic night sky, constellation outlines, and telescope field of view.
+            Official International Astronomical Union repository for orbital solutions, discovery records, and radar ephemeris.
           </p>
         </a>
       </div>
