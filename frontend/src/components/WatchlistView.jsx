@@ -143,11 +143,11 @@ export default function WatchlistView({
           </div>
           <div className="watchlist-stat-pill hazard">
             <span className="pill-number">{hazardousCount}</span>
-            <span className="pill-label">Tracked Hazards</span>
+            <span className="pill-label">NASA PHAs</span>
           </div>
           <div className="watchlist-stat-pill safe">
             <span className="pill-number">{watchlist.length - hazardousCount}</span>
-            <span className="pill-label">Low Risk Targets</span>
+            <span className="pill-label">Standard NEOs</span>
           </div>
         </div>
       </section>
@@ -250,8 +250,8 @@ export default function WatchlistView({
                       👁 {obsCountByNeo[neo.id]} Sightings
                     </span>
                   )}
-                  <span className={`hazard-badge ${neo.is_potentially_hazardous ? 'high' : 'low'}`}>
-                    {neo.is_potentially_hazardous ? '⚠️ Tracked Hazard' : '🛡️ Low Risk'}
+                  <span className={`hazard-badge ${neo.is_potentially_hazardous ? 'pha-tracked' : 'standard-neo'}`}>
+                    {neo.is_potentially_hazardous ? '⚠️ NASA Tracked PHA' : 'Standard NEO'}
                   </span>
                   <button
                     type="button"

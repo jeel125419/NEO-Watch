@@ -366,7 +366,7 @@ export default function NotificationCenter({
                     <div className="notif-card-header">
                       <div className="notif-card-title-row">
                         <span className={`notif-type-tag ${severityClass}`}>
-                          {n.type === 'close_approach' ? '🚀 Flyby' : n.type === 'hazard_shift' ? '⚠️ Hazard' : '🔬 Refinement'}
+                          {n.type === 'close_approach' ? '🚀 Flyby' : n.type === 'hazard_shift' ? '⚠️ PHA Notice' : '🔬 Refinement'}
                         </span>
                         <h4 className="notif-card-title">{n.title}</h4>
                       </div>
@@ -379,7 +379,7 @@ export default function NotificationCenter({
                       {n.neo_name && (
                         <div className="notif-neo-badge">
                           <span>☄️ {n.neo_name}</span>
-                          {n.is_potentially_hazardous && <span className="pha-indicator">PHA</span>}
+                          {n.is_potentially_hazardous && <span className="pha-indicator">NASA PHA</span>}
                         </div>
                       )}
 

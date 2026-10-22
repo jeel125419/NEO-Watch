@@ -1,31 +1,33 @@
-/* Default: Cosmic Deep Space */
+/* Default: Cosmos Deep Space (Obsidian & Lavender) */
 :root, [data-theme="deep-space"] {
-  --bg-space: #070a12;
-  --bg-surface: #0e1424;
-  --bg-card: rgba(18, 25, 44, 0.75);
-  --bg-card-hover: rgba(28, 38, 66, 0.85);
-  --bg-glass: rgba(15, 23, 42, 0.65);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(99, 102, 241, 0.3);
+  --bg-space: #05070d;
+  --bg-surface: #0a0f1d;
+  --bg-card: rgba(13, 18, 30, 0.72);
+  --bg-card-hover: rgba(20, 28, 48, 0.85);
+  --bg-glass: rgba(13, 18, 30, 0.65);
+  --border-subtle: rgba(196, 181, 253, 0.12);
+  --border-glow: rgba(167, 139, 250, 0.35);
 
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
 
-  --accent-indigo: #6366f1;
-  --accent-cyan: #06b6d4;
-  --hazard-low: #10b981;
-  --hazard-med: #f59e0b;
-  --hazard-high: #ef4444;
+  --accent-lavender: #c4b5fd;
+  --accent-indigo: #818cf8;
+  --accent-cyan: #38bdf8;
+  --hazard-pha: #f59e0b;
+  --hazard-pha-bg: rgba(245, 158, 11, 0.12);
+  --hazard-standard: #94a3b8;
+  --hazard-standard-bg: rgba(148, 163, 184, 0.1);
 
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.2);
-  --bg-grad-1: rgba(99, 102, 241, 0.08);
-  --bg-grad-2: rgba(6, 182, 212, 0.06);
+  --shadow-card: 0 12px 30px -8px rgba(0, 0, 0, 0.75), 0 4px 12px -2px rgba(99, 102, 241, 0.1);
+  --shadow-glow: 0 0 25px rgba(167, 139, 250, 0.2);
+  --bg-grad-1: rgba(99, 102, 241, 0.07);
+  --bg-grad-2: rgba(167, 139, 250, 0.05);
 }
 
 /* 2. NASA Mission Control (Tactical Aerospace HUD) */

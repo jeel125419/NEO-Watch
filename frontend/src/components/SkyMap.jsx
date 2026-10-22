@@ -439,7 +439,7 @@ export default function SkyMap({ onSelectNeoDetail, watchlistIds, onToggleWatchl
                       checked={filterHazardousOnly}
                       onChange={(e) => setFilterHazardousOnly(e.target.checked)}
                     />
-                    <span>Hazards Only</span>
+                    <span>NASA PHAs Only</span>
                   </label>
                 </div>
               </div>
@@ -490,8 +490,8 @@ export default function SkyMap({ onSelectNeoDetail, watchlistIds, onToggleWatchl
                 </div>
 
                 <div className="inspect-badges">
-                  <span className={`hazard-badge ${selectedAsteroid.is_potentially_hazardous ? 'high' : 'low'}`}>
-                    {selectedAsteroid.is_potentially_hazardous ? '⚠️ Tracked Hazard' : '🛡️ Low Risk'}
+                  <span className={`hazard-badge ${selectedAsteroid.is_potentially_hazardous ? 'pha-tracked' : 'standard-neo'}`}>
+                    {selectedAsteroid.is_potentially_hazardous ? '⚠️ NASA Tracked PHA' : 'Standard NEO'}
                   </span>
                   <span className={`vis-rating-pill small ${selectedAsteroid.rating_badge}`}>
                     {selectedAsteroid.rating}

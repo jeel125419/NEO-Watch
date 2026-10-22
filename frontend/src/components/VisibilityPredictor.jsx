@@ -524,7 +524,7 @@ export default function VisibilityPredictor({ initialNeoId, onSelectNeoModal }) 
                   className={`vis-pill-btn ${filterRating === 'HAZARDOUS' ? 'active' : ''}`}
                   onClick={() => setFilterRating('HAZARDOUS')}
                 >
-                  ⚠️ Tracked Hazards
+                  ⚠️ NASA Tracked PHAs
                 </button>
               </div>
             </div>

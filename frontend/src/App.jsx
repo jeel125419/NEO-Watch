@@ -438,7 +438,7 @@ export default function App() {
           <div className="brand-icon" aria-hidden="true">☄️</div>
           <div>
             <h1 className="brand-title">NEO Watch</h1>
-            <p className="brand-subtitle">Asteroid risk data, translated for humans — not scientists</p>
+            <p className="brand-subtitle">Near-Earth Asteroid Explorer & Orbital Telemetry</p>
           </div>
         </div>
 
@@ -457,10 +457,6 @@ export default function App() {
           <div className="status-badge" id="backend-status-badge">
             <span className={`status-dot ${backendHealthy ? 'active' : 'fallback'}`} />
             <span>Backend: {backendHealthy ? 'Connected' : 'Offline'}</span>
-          </div>
-          <div className="status-badge" id="ml-status-badge">
-            <span className={`status-dot ${mlAvailable ? 'active' : 'fallback'}`} />
-            <span>ML Model: {mlAvailable ? 'Active' : 'Fallback Mode'}</span>
           </div>
 
           {currentUser ? (
@@ -573,12 +569,11 @@ export default function App() {
         <>
           {/* Educational Banner */}
           <section className="info-banner" aria-label="Educational context">
-            <div className="info-icon">💡</div>
+            <div className="info-icon">🪐</div>
             <div className="info-text">
-              <h3>What does "Potentially Hazardous" really mean?</h3>
+              <h3>Understanding NASA's "Potentially Hazardous Asteroid" Classification</h3>
               <p>
-                NASA designates an asteroid as potentially hazardous if its orbit comes within <strong>0.05 AU</strong> (about 7.5 million km or 19.5 Lunar Distances) of Earth and its diameter exceeds ~<strong>140 meters</strong>. 
-                This is an administrative eligibility criterion for continued observational tracking — <em>not</em> a prediction of an imminent impact. Our ML model reconstructs this hazard classification using NASA's orbital physics features.
+                NASA designates a near-Earth object as a <strong>Potentially Hazardous Asteroid (PHA)</strong> if its orbit approaches within <strong>0.05 AU</strong> (approx. 7.5 million km or 19.5 Lunar Distances) of Earth's orbit and its estimated diameter exceeds approximately <strong>140 meters</strong>. This is an administrative threshold used by astronomers to prioritize continuous radar and optical tracking — <em>it does not mean an Earth impact is predicted</em>.
               </p>
             </div>
           </section>
@@ -615,9 +610,9 @@ export default function App() {
               setPage(1);
             }}
           >
-            <option value="">All Asteroids</option>
-            <option value="true">Tracked / Hazardous Only</option>
-            <option value="false">Low Risk Only</option>
+            <option value="">All Near-Earth Objects</option>
+            <option value="true">NASA Tracked PHAs Only</option>
+            <option value="false">Standard NEOs (Non-PHA)</option>
           </select>
 
           <select
@@ -650,20 +645,20 @@ export default function App() {
         </div>
       </section>
 
-      {/* Quick Stats Strip */}
+      {/* Quick Stats Strip (Verified Real Data Only) */}
       <section className="stats-strip" aria-label="Database statistics">
         <div className="stat-card">
           <span className="stat-label">Cataloged Near-Earth Objects</span>
           <span className="stat-value">{pagination.total}</span>
         </div>
         <div className="stat-card">
-          <span className="stat-label">Active Page</span>
+          <span className="stat-label">Active Catalog Page</span>
           <span className="stat-value">{page} / {pagination.totalPages || 1}</span>
         </div>
         <div className="stat-card">
-          <span className="stat-label">Risk Assessment Engine</span>
-          <span className="stat-value" style={{ fontSize: '1.25rem', color: '#c7d2fe' }}>
-            Random Forest (9-feature)
+          <span className="stat-label">Orbit Calculation Ephemeris</span>
+          <span className="stat-value" style={{ fontSize: '1.2rem', color: 'var(--accent-lavender)' }}>
+            NASA JPL HORIZONS
           </span>
         </div>
       </section>
@@ -690,7 +685,7 @@ export default function App() {
               <article
                 key={neo.id}
                 id={`neo-card-${neo.id}`}
-                className={`neo-card ${neo.is_potentially_hazardous ? 'hazardous' : ''}`}
+                className={`neo-card ${neo.is_potentially_hazardous ? 'pha-tracked' : ''}`}
                 onClick={() => setSelectedNeoId(neo.id)}
               >
                 <div className="neo-card-header">
@@ -710,8 +705,8 @@ export default function App() {
                     >
                       {watchlistIds.has(neo.id) ? '★' : '☆'}
                     </button>
-                    <span className={`hazard-badge ${neo.is_potentially_hazardous ? 'high' : 'low'}`}>
-                      {neo.is_potentially_hazardous ? '⚠️ Tracked Hazard' : '🛡️ Low Risk'}
+                    <span className={`hazard-badge ${neo.is_potentially_hazardous ? 'pha-tracked' : 'standard-neo'}`}>
+                      {neo.is_potentially_hazardous ? '⚠️ NASA Tracked PHA' : 'Standard NEO'}
                     </span>
                   </div>
                 </div>
@@ -728,9 +723,15 @@ export default function App() {
                 </div>
 
                 <div className="neo-card-footer">
-                  <span>
-                    Closest: <strong>{neo.closest_miss_distance_km ? formatKm(neo.closest_miss_distance_km) : 'Historical'}</strong>
-                  </span>
+                  <div className="card-encounter-preview">
+                    <span className="card-encounter-label">Closest Approach: </span>
+                    <strong className="card-encounter-val">
+                      {neo.closest_miss_distance_km ? formatKm(neo.closest_miss_distance_km) : 'Historical'}
+                    </strong>
+                    {neo.closest_miss_distance_km && (
+                      <span className="card-ld-note"> ({formatLunarDistance(neo.closest_miss_distance_km)})</span>
+                    )}
+                  </div>
                   <div className="card-footer-actions">
                     <button
                       type="button"
@@ -882,48 +883,38 @@ export default function App() {
                 </div>
 
                 <div className="modal-body">
-                  {/* LAYER 1: Always Visible, Plain Language */}
-                  <section className="plain-language-card" aria-label="Plain language risk explanation">
+                  {/* LAYER 1: Always Visible, Plain-Language Scientific Classification */}
+                  <section className="plain-language-card" aria-label="NASA classification and scientific context">
                     <div className="tier-headline">
-                      <span className={`hazard-badge ${riskData?.tier === 'High' ? 'high' : riskData?.tier === 'Medium' ? 'med' : 'low'}`} style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }}>
-                        {riskData?.tier === 'High' ? '⚠️ High Hazard Tier' : riskData?.tier === 'Medium' ? '⚡ Moderate Hazard Tier' : '🛡️ Low Hazard Tier'}
+                      <span className={`hazard-badge ${selectedNeoDetail.is_potentially_hazardous ? 'pha-tracked' : 'standard-neo'}`} style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }}>
+                        {selectedNeoDetail.is_potentially_hazardous ? '⚠️ NASA Tracked PHA' : 'Standard Near-Earth Object'}
                       </span>
                       <span className="tier-text">
-                        {riskData?.is_potentially_hazardous
-                          ? 'Tracked by NASA because it is close and large enough to watch'
-                          : 'Not classified as a hazard by NASA orbital criteria'}
+                        {selectedNeoDetail.is_potentially_hazardous
+                          ? 'Meets NASA size and orbital proximity criteria for continuous tracking'
+                          : 'Does not meet NASA Potentially Hazardous Asteroid criteria'}
                       </span>
                     </div>
 
                     <p className="plain-explanation">
-                      {riskData?.is_potentially_hazardous ? (
+                      {selectedNeoDetail.is_potentially_hazardous ? (
                         <>
-                          This object fits NASA’s <strong>Potentially Hazardous Asteroid (PHA)</strong> eligibility rules because it approaches within 0.05 AU of Earth's orbit and has an estimated diameter over 140 meters. <em>This does not mean an impact is predicted</em> — it ensures astronomers continue radar and optical tracking to refine its future orbit.
+                          This asteroid meets NASA’s official <strong>Potentially Hazardous Asteroid (PHA)</strong> eligibility criteria because its orbit approaches within <strong>0.05 AU</strong> (approx. 7.5 million km or 19.5 Lunar Distances) of Earth's orbit and its estimated diameter exceeds approximately <strong>140 meters</strong>. <em>This classification is an administrative monitoring priority, not a prediction of an impact.</em> It ensures global astronomical observatories maintain continuous optical and radar astrometry to refine its orbit.
                         </>
                       ) : (
                         <>
-                          This object passes at a safe distance or is small enough to burn up harmlessly in the upper atmosphere if it ever encountered Earth. It does not meet the PHA criteria.
+                          This object does not meet NASA’s Potentially Hazardous Asteroid threshold because its orbit does not intersect within 0.05 AU of Earth or its diameter is under 140 meters. It follows a standard near-Earth orbital path and is not flagged for specialized PHA monitoring.
                         </>
                       )}
                     </p>
 
-                    {/* Source distinction: ml_model vs nasa_flag_fallback */}
-                    {riskData?.source === 'ml_model' ? (
-                      <div className="source-banner ml-model" id="risk-source-banner">
-                        <span>🤖</span>
-                        <div>
-                          <strong>ML Classification ({riskData.confidence ? `${(riskData.confidence * 100).toFixed(1)}% confidence` : 'Scored'}):</strong>{' '}
-                          Reconstructed by Random Forest classifier trained on NASA's physical and orbital parameters.
-                        </div>
+                    {/* Official Data Source Attribution */}
+                    <div className="source-banner official-source" id="nasa-source-banner">
+                      <span>🪐</span>
+                      <div>
+                        <strong>Authoritative Data Source:</strong> Official NASA JPL Small-Body Database (HORIZONS Ephemeris & NeoWs API). Orbit and close-approach calculations are deterministic astronomical physics solutions.
                       </div>
-                    ) : (
-                      <div className="source-banner fallback" id="risk-source-banner">
-                        <span>⚠️</span>
-                        <div>
-                          <strong>Notice:</strong> Showing NASA's own hazard flag — the detailed risk model is temporarily unavailable.
-                        </div>
-                      </div>
-                    )}
+                    </div>
                   </section>
 
                   {/* Phase 5 Stargazing Quick Action Banner */}
