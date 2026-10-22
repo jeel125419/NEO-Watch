@@ -416,23 +416,6 @@ export default function App() {
     }
   };
 
-  const getAsteroidScale = (minKm, maxKm) => {
-    const avgMeters = (((minKm || 0) + (maxKm || minKm || 0)) / 2) * 1000;
-    if (!avgMeters || avgMeters <= 0) {
-      return { icon: '☄️', label: 'Unmeasured Scale', tier: 'unknown', barWidth: '20%' };
-    }
-    if (avgMeters < 60) {
-      return { icon: '🏠', label: 'Building Scale', tier: 'compact', barWidth: '25%' };
-    }
-    if (avgMeters < 250) {
-      return { icon: '🏟️', label: 'Stadium Scale', tier: 'moderate', barWidth: '50%' };
-    }
-    if (avgMeters < 1000) {
-      return { icon: '🏙️', label: 'Skyscraper Scale', tier: 'massive', barWidth: '75%' };
-    }
-    return { icon: '⛰️', label: 'Mountain Scale', tier: 'colossal', barWidth: '95%' };
-  };
-
   return (
     <div className="app-container" id="neo-watch-app">
       {/* Header */}
@@ -752,7 +735,6 @@ export default function App() {
             ) : (
               <div className="neo-grid" id="neo-items-grid">
                 {neos.map(neo => {
-                  const scale = getAsteroidScale(neo.estimated_diameter_min_km, neo.estimated_diameter_max_km);
                   const isPha = Boolean(neo.is_potentially_hazardous);
 
                   return (
@@ -782,26 +764,13 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Visual Scale Indicator Bar */}
-                      <div className="card-scale-indicator">
-                        <div className="scale-meta-row">
-                          <span className="scale-label-tag">
-                            <span className="scale-icon">{scale.icon}</span>
-                            <span>{scale.label}</span>
-                          </span>
-                          <span className="scale-size-text">
+                      <div className="neo-quick-metrics">
+                        <div className="quick-metric">
+                          <span className="qm-label">Estimated Size</span>
+                          <span className="qm-value">
                             {formatDiameter(neo.estimated_diameter_min_km, neo.estimated_diameter_max_km)}
                           </span>
                         </div>
-                        <div className="scale-track">
-                          <div
-                            className={`scale-progress-bar ${scale.tier}`}
-                            style={{ width: scale.barWidth }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="neo-quick-metrics">
                         <div className="quick-metric">
                           <span className="qm-label">Closest Flyby</span>
                           <span className="qm-value">
@@ -816,7 +785,6 @@ export default function App() {
                         <div className="quick-metric">
                           <span className="qm-label">Brightness</span>
                           <span className="qm-value">{neo.absolute_magnitude_h ? `${neo.absolute_magnitude_h} H` : 'N/A'}</span>
-                          <span className="qm-subnote">Absolute Magnitude</span>
                         </div>
                       </div>
 
