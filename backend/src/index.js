@@ -6,6 +6,7 @@ import visibilityRouter from './routes/visibility.js';
 import authRouter from './routes/auth.js';
 import watchlistRouter from './routes/watchlist.js';
 import observationsRouter from './routes/observations.js';
+import notificationsRouter from './routes/notifications.js';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/watchlist', watchlistRouter);
 app.use('/api/observations', observationsRouter);
+app.use('/api/notifications', notificationsRouter);
 app.use('/api/neos', neosRouter);
 app.use('/api/visibility', visibilityRouter);
 

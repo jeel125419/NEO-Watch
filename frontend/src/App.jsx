@@ -5,6 +5,7 @@ import AuthModal from './components/AuthModal.jsx';
 import WatchlistView from './components/WatchlistView.jsx';
 import ObservationLogModal from './components/ObservationLogModal.jsx';
 import AstroDeepLinks from './components/AstroDeepLinks.jsx';
+import NotificationCenter from './components/NotificationCenter.jsx';
 import './App.css';
 
 export default function App() {
@@ -29,6 +30,10 @@ export default function App() {
   const [obsTargetNeo, setObsTargetNeo] = useState(null);
   const [totalObsCount, setTotalObsCount] = useState(0);
   const [obsCountByNeo, setObsCountByNeo] = useState({});
+
+  // Notifications State (Phase 9)
+  const [showNotifModal, setShowNotifModal] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
 
   const [neos, setNeos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,6 +137,37 @@ export default function App() {
     fetchObservationStats();
   }, [token]);
 
+  // Sync Unread Notifications count & auto-check alerts (Phase 9)
+  const syncNotifications = () => {
+    if (!token) {
+      setUnreadNotifCount(0);
+      return;
+    }
+
+    fetch('/api/notifications/unread-count', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data.unreadCount === 'number') {
+          setUnreadNotifCount(data.unreadCount);
+        }
+      })
+      .catch(err => console.warn('[Notif Sync]', err));
+  };
+
+  useEffect(() => {
+    syncNotifications();
+    if (token) {
+      fetch('/api/notifications/check-alerts', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(() => syncNotifications())
+        .catch(err => console.warn(err));
+    }
+  }, [token]);
+
   const handleAuthSuccess = (userData, userToken) => {
     setCurrentUser(userData);
     setToken(userToken);
@@ -149,6 +185,7 @@ export default function App() {
     setWatchlistIds(new Set());
     setTotalObsCount(0);
     setObsCountByNeo({});
+    setUnreadNotifCount(0);
     try {
       localStorage.removeItem('neo_user');
       localStorage.removeItem('neo_token');
@@ -214,6 +251,14 @@ export default function App() {
         });
         const errData = await res.json();
         alert(errData.error || 'Failed to update watchlist.');
+      } else if (!isAlreadyIn) {
+        // Evaluate alerts for newly bookmarked asteroid
+        fetch('/api/notifications/check-alerts', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+          .then(() => syncNotifications())
+          .catch(err => console.warn(err));
       }
     } catch (err) {
       console.error('Watchlist toggle error:', err);
@@ -406,6 +451,18 @@ export default function App() {
                 onClick={() => handleOpenObservationModal(null)}
               >
                 📓 {totalObsCount}
+              </button>
+              <button
+                type="button"
+                id="header-notif-bell-btn"
+                className={`notif-quick-badge ${unreadNotifCount > 0 ? 'has-unread' : ''}`}
+                title="View Notifications & Refinement Alerts"
+                onClick={() => setShowNotifModal(true)}
+              >
+                <span>🔔</span>
+                {unreadNotifCount > 0 && (
+                  <span className="notif-bubble-count">{unreadNotifCount}</span>
+                )}
               </button>
               <button
                 type="button"
@@ -1121,6 +1178,17 @@ export default function App() {
         preselectedNeoName={obsTargetNeo?.name}
         onObservationAdded={handleObservationAdded}
         onRequireAuth={() => setShowAuthModal(true)}
+      />
+
+      {/* Phase 9: Notifications & Refinement Alerts Center */}
+      <NotificationCenter
+        isOpen={showNotifModal}
+        onClose={() => setShowNotifModal(false)}
+        token={token}
+        currentUser={currentUser}
+        onSelectNeo={(id) => setSelectedNeoId(id)}
+        onRequireAuth={() => setShowAuthModal(true)}
+        onNotificationsChanged={(unread) => setUnreadNotifCount(unread)}
       />
     </div>
   );

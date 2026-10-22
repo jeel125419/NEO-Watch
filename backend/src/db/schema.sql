@@ -66,3 +66,19 @@ CREATE TABLE IF NOT EXISTS observations (
 
 CREATE INDEX IF NOT EXISTS idx_observations_user_id ON observations(user_id);
 CREATE INDEX IF NOT EXISTS idx_observations_neo_id ON observations(neo_object_id);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    neo_object_id INTEGER REFERENCES neo_objects(id) ON DELETE SET NULL,
+    type VARCHAR(50) NOT NULL, -- 'refinement' | 'close_approach' | 'hazard_shift' | 'visibility'
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    severity VARCHAR(20) DEFAULT 'info', -- 'info' | 'warning' | 'alert'
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);
