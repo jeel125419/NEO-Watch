@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import VisibilityPredictor from './components/VisibilityPredictor.jsx';
 import SkyMap from './components/SkyMap.jsx';
+import AuthModal from './components/AuthModal.jsx';
+import WatchlistView from './components/WatchlistView.jsx';
 import './App.css';
 
 export default function App() {
-  const [activeNav, setActiveNav] = useState('catalog'); // 'catalog' | 'visibility' | 'skymap'
+  const [activeNav, setActiveNav] = useState('catalog'); // 'catalog' | 'visibility' | 'skymap' | 'watchlist'
   const [predictTargetNeoId, setPredictTargetNeoId] = useState(null);
+
+  // Authentication & Watchlist State (Phase 7)
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('neo_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [token, setToken] = useState(() => localStorage.getItem('neo_token') || null);
+  const [watchlistIds, setWatchlistIds] = useState(new Set());
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const [neos, setNeos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +55,115 @@ export default function App() {
       .then(() => setBackendHealthy(true))
       .catch(() => setBackendHealthy(false));
   }, []);
+
+  // Sync Watchlist IDs when authenticated
+  useEffect(() => {
+    if (!token) {
+      setWatchlistIds(new Set());
+      return;
+    }
+
+    fetch('/api/watchlist/ids', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+      .then(res => {
+        if (res.status === 401) {
+          handleLogout();
+          throw new Error('Session expired');
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data.ids && Array.isArray(data.ids)) {
+          setWatchlistIds(new Set(data.ids));
+        }
+      })
+      .catch(err => {
+        console.warn('[Watchlist Sync]', err.message);
+      });
+  }, [token]);
+
+  const handleAuthSuccess = (userData, userToken) => {
+    setCurrentUser(userData);
+    setToken(userToken);
+    try {
+      localStorage.setItem('neo_user', JSON.stringify(userData));
+      localStorage.setItem('neo_token', userToken);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setToken(null);
+    setWatchlistIds(new Set());
+    try {
+      localStorage.removeItem('neo_user');
+      localStorage.removeItem('neo_token');
+    } catch (e) {
+      console.error(e);
+    }
+    if (activeNav === 'watchlist') {
+      setActiveNav('catalog');
+    }
+  };
+
+  const handleToggleWatchlist = async (neoId, e) => {
+    if (e) e.stopPropagation();
+
+    if (!currentUser || !token) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    const isAlreadyIn = watchlistIds.has(neoId);
+
+    // Optimistic toggle
+    setWatchlistIds(prev => {
+      const next = new Set(prev);
+      if (isAlreadyIn) {
+        next.delete(neoId);
+      } else {
+        next.add(neoId);
+      }
+      return next;
+    });
+
+    try {
+      const endpoint = `/api/watchlist/${neoId}`;
+      const method = isAlreadyIn ? 'DELETE' : 'POST';
+      const res = await fetch(endpoint, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) {
+        // Revert on failure
+        setWatchlistIds(prev => {
+          const next = new Set(prev);
+          if (isAlreadyIn) next.add(neoId);
+          else next.delete(neoId);
+          return next;
+        });
+        const errData = await res.json();
+        alert(errData.error || 'Failed to update watchlist.');
+      }
+    } catch (err) {
+      console.error('Watchlist toggle error:', err);
+      // Revert on network error
+      setWatchlistIds(prev => {
+        const next = new Set(prev);
+        if (isAlreadyIn) next.add(neoId);
+        else next.delete(neoId);
+        return next;
+      });
+    }
+  };
 
   // Debounce search input by 350ms to reduce backend API calls
   useEffect(() => {
@@ -199,6 +323,39 @@ export default function App() {
             <span className={`status-dot ${mlAvailable ? 'active' : 'fallback'}`} />
             <span>ML Model: {mlAvailable ? 'Active' : 'Fallback Mode'}</span>
           </div>
+
+          {currentUser ? (
+            <div className="user-profile-pill" id="user-profile-pill">
+              <span className="user-email-text" title={currentUser.email}>
+                👤 {currentUser.email.split('@')[0]}
+              </span>
+              <button
+                type="button"
+                className="watchlist-quick-badge"
+                title="View your saved asteroid watchlist"
+                onClick={() => setActiveNav('watchlist')}
+              >
+                ⭐ {watchlistIds.size}
+              </button>
+              <button
+                type="button"
+                className="auth-logout-btn"
+                title="Sign out of your account"
+                onClick={handleLogout}
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              id="header-sign-in-btn"
+              className="auth-login-pill-btn"
+              onClick={() => setShowAuthModal(true)}
+            >
+              🔑 Sign In
+            </button>
+          )}
         </div>
       </header>
 
@@ -227,6 +384,20 @@ export default function App() {
           onClick={() => setActiveNav('skymap')}
         >
           <span>🌌 Interactive Sky Map</span>
+        </button>
+        <button
+          id="nav-watchlist-btn"
+          type="button"
+          className={`main-nav-btn ${activeNav === 'watchlist' ? 'active' : ''}`}
+          onClick={() => {
+            if (!currentUser) {
+              setShowAuthModal(true);
+            } else {
+              setActiveNav('watchlist');
+            }
+          }}
+        >
+          <span>⭐ My Watchlist {currentUser && watchlistIds.size > 0 ? `(${watchlistIds.size})` : ''}</span>
         </button>
       </nav>
 
@@ -361,9 +532,21 @@ export default function App() {
                     <span className="neo-ref-id">Ref #{neo.neo_reference_id}</span>
                   </div>
 
-                  <span className={`hazard-badge ${neo.is_potentially_hazardous ? 'high' : 'low'}`}>
-                    {neo.is_potentially_hazardous ? '⚠️ Tracked Hazard' : '🛡️ Low Risk'}
-                  </span>
+                  <div className="neo-card-actions-cluster">
+                    <button
+                      type="button"
+                      id={`star-btn-${neo.id}`}
+                      className={`star-bookmark-btn ${watchlistIds.has(neo.id) ? 'active' : ''}`}
+                      title={watchlistIds.has(neo.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                      onClick={(e) => handleToggleWatchlist(neo.id, e)}
+                      aria-label={watchlistIds.has(neo.id) ? `Remove ${neo.name} from watchlist` : `Add ${neo.name} to watchlist`}
+                    >
+                      {watchlistIds.has(neo.id) ? '★' : '☆'}
+                    </button>
+                    <span className={`hazard-badge ${neo.is_potentially_hazardous ? 'high' : 'low'}`}>
+                      {neo.is_potentially_hazardous ? '⚠️ Tracked Hazard' : '🛡️ Low Risk'}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="neo-quick-metrics">
@@ -444,6 +627,30 @@ export default function App() {
       {activeNav === 'skymap' && (
         <SkyMap
           onSelectNeoDetail={(id) => setSelectedNeoId(id)}
+          watchlistIds={watchlistIds}
+          onToggleWatchlist={handleToggleWatchlist}
+        />
+      )}
+
+      {/* VIEW 4: Personal Asteroid Watchlist (Phase 7) */}
+      {activeNav === 'watchlist' && (
+        <WatchlistView
+          token={token}
+          user={currentUser}
+          onSelectNeo={(id) => setSelectedNeoId(id)}
+          onSwitchNav={(nav) => setActiveNav(nav)}
+          onPredictTarget={(id) => {
+            setPredictTargetNeoId(id);
+            setActiveNav('visibility');
+          }}
+          onWatchlistChanged={(id, isAdded) => {
+            setWatchlistIds(prev => {
+              const next = new Set(prev);
+              if (isAdded) next.add(id);
+              else next.delete(id);
+              return next;
+            });
+          }}
         />
       )}
 
@@ -466,7 +673,19 @@ export default function App() {
               <>
                 <div className="modal-header">
                   <div className="modal-title-group">
-                    <h2>{selectedNeoDetail.name}</h2>
+                    <div className="modal-title-row">
+                      <h2>{selectedNeoDetail.name}</h2>
+                      <button
+                        type="button"
+                        id="modal-watchlist-toggle-btn"
+                        className={`modal-watchlist-btn ${watchlistIds.has(selectedNeoDetail.id) ? 'active' : ''}`}
+                        onClick={(e) => handleToggleWatchlist(selectedNeoDetail.id, e)}
+                        title={watchlistIds.has(selectedNeoDetail.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                      >
+                        <span>{watchlistIds.has(selectedNeoDetail.id) ? '★' : '☆'}</span>
+                        <span>{watchlistIds.has(selectedNeoDetail.id) ? 'Tracked in Watchlist' : 'Track in Watchlist'}</span>
+                      </button>
+                    </div>
                     <span className="neo-ref-id">NASA NeoWs Reference ID: {selectedNeoDetail.neo_reference_id}</span>
                   </div>
                   <button
@@ -781,6 +1000,13 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Phase 7: Authentication Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={handleAuthSuccess}
+      />
     </div>
   );
 }

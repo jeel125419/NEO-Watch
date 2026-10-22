@@ -10,7 +10,7 @@ const CITY_PRESETS = [
   { name: 'Mauna Kea, Hawaii', lat: 19.8206, lon: -155.4681 }
 ];
 
-export default function SkyMap({ onSelectNeoDetail }) {
+export default function SkyMap({ onSelectNeoDetail, watchlistIds, onToggleWatchlist }) {
   // Observer location & date
   const [lat, setLat] = useState(28.6139);
   const [lon, setLon] = useState(77.2090);
@@ -495,6 +495,17 @@ export default function SkyMap({ onSelectNeoDetail }) {
                   <span className={`vis-rating-pill small ${selectedAsteroid.rating_badge}`}>
                     {selectedAsteroid.rating}
                   </span>
+                  {onToggleWatchlist && (
+                    <button
+                      type="button"
+                      className={`star-bookmark-btn ${watchlistIds && watchlistIds.has(selectedAsteroid.id) ? 'active' : ''}`}
+                      style={{ width: '28px', height: '28px', fontSize: '1rem' }}
+                      title={watchlistIds && watchlistIds.has(selectedAsteroid.id) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                      onClick={(e) => onToggleWatchlist(selectedAsteroid.id, e)}
+                    >
+                      {watchlistIds && watchlistIds.has(selectedAsteroid.id) ? '★' : '☆'}
+                    </button>
+                  )}
                 </div>
 
                 {/* Instant Horizon Coordinates */}

@@ -52,6 +52,8 @@ CREATE TABLE IF NOT EXISTS watchlists (
     CONSTRAINT uq_watchlist_user_neo UNIQUE (user_id, neo_object_id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_watchlists_user_id ON watchlists(user_id);
+
 CREATE TABLE IF NOT EXISTS observations (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
