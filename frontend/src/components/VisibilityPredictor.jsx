@@ -108,11 +108,12 @@ export default function VisibilityPredictor({ initialNeoId, onSelectNeoModal }) 
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const detectedLat = Math.round(pos.coords.latitude * 10000) / 10000;
-        const detectedLon = Math.round(pos.coords.longitude * 10000) / 10000;
+        const detectedLat = Math.round(pos.coords.latitude * 100000) / 100000;
+        const detectedLon = Math.round(pos.coords.longitude * 100000) / 100000;
         setLat(detectedLat);
         setLon(detectedLon);
-        setLocationName('Detected GPS Location');
+        const accuracy = pos.coords.accuracy ? ` (±${Math.round(pos.coords.accuracy)}m)` : '';
+        setLocationName(`Detected GPS Location${accuracy}`);
         setGeoLoading(false);
       },
       (err) => {
@@ -120,7 +121,7 @@ export default function VisibilityPredictor({ initialNeoId, onSelectNeoModal }) 
         setGeoError('Unable to retrieve location. Please check browser permissions.');
         setGeoLoading(false);
       },
-      { timeout: 10000 }
+      { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
     );
   };
 
@@ -207,7 +208,7 @@ export default function VisibilityPredictor({ initialNeoId, onSelectNeoModal }) 
             <input
               id="vis-lat-input"
               type="number"
-              step="0.0001"
+              step="any"
               min="-90"
               max="90"
               className="vis-num-input"
@@ -225,7 +226,7 @@ export default function VisibilityPredictor({ initialNeoId, onSelectNeoModal }) 
             <input
               id="vis-lon-input"
               type="number"
-              step="0.0001"
+              step="any"
               min="-180"
               max="180"
               className="vis-num-input"

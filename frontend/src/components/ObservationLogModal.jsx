@@ -132,17 +132,20 @@ export default function ObservationLogModal({
     setError(null);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setLatitude(pos.coords.latitude.toFixed(5));
-        setLongitude(pos.coords.longitude.toFixed(5));
+        const latVal = Number(pos.coords.latitude.toFixed(5));
+        const lonVal = Number(pos.coords.longitude.toFixed(5));
+        setLatitude(latVal);
+        setLongitude(lonVal);
         setGeoLocating(false);
-        setSuccessMsg(`📍 Location acquired: ${pos.coords.latitude.toFixed(4)}°, ${pos.coords.longitude.toFixed(4)}°`);
+        const accuracyNote = pos.coords.accuracy ? ` (±${Math.round(pos.coords.accuracy)}m accuracy)` : '';
+        setSuccessMsg(`📍 Location acquired: ${latVal}°, ${lonVal}°${accuracyNote}`);
         setTimeout(() => setSuccessMsg(null), 4000);
       },
       (err) => {
         setGeoLocating(false);
         setError(`Could not detect location: ${err.message}. Please enter coordinates manually.`);
       },
-      { timeout: 10000, enableHighAccuracy: true }
+      { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
     );
   };
 
@@ -558,7 +561,7 @@ export default function ObservationLogModal({
                     <span className="coord-label">Latitude</span>
                     <input
                       type="number"
-                      step="0.0001"
+                      step="any"
                       min="-90"
                       max="90"
                       className="obs-input"
@@ -572,7 +575,7 @@ export default function ObservationLogModal({
                     <span className="coord-label">Longitude</span>
                     <input
                       type="number"
-                      step="0.0001"
+                      step="any"
                       min="-180"
                       max="180"
                       className="obs-input"
@@ -583,6 +586,7 @@ export default function ObservationLogModal({
                     />
                   </div>
                 </div>
+                <span className="obs-hint">Auto-detected GPS or enter custom coordinates with any precision. (100m ~ 0.0009° has negligible impact on orbital angles).</span>
               </div>
 
               {/* Notes / Optical Setup */}
