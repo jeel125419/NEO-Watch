@@ -6,12 +6,14 @@ import WatchlistView from './components/WatchlistView.jsx';
 import ObservationLogModal from './components/ObservationLogModal.jsx';
 import AstroDeepLinks from './components/AstroDeepLinks.jsx';
 import NotificationCenter from './components/NotificationCenter.jsx';
+import AboutView from './components/AboutView.jsx';
 import cosmosHeroImage from './assets/cosmos_hero.jpg';
 import './App.css';
 
 export default function App() {
-  const [activeNav, setActiveNav] = useState('catalog'); // 'catalog' | 'visibility' | 'skymap' | 'watchlist'
+  const [activeNav, setActiveNav] = useState('catalog'); // 'catalog' | 'visibility' | 'skymap' | 'watchlist' | 'about'
   const [predictTargetNeoId, setPredictTargetNeoId] = useState(null);
+  const [targetGlossaryTermId, setTargetGlossaryTermId] = useState(null);
   const [showPhaEducation, setShowPhaEducation] = useState(false);
 
   // Set single locked theme to document element
@@ -416,6 +418,13 @@ export default function App() {
     }
   };
 
+  const handleNavigateToGlossary = (termId, e) => {
+    if (e) e.stopPropagation();
+    setTargetGlossaryTermId(termId);
+    setSelectedNeoId(null);
+    setActiveNav('about');
+  };
+
   return (
     <div className="app-container" id="neo-watch-app">
       {/* Header */}
@@ -536,6 +545,17 @@ export default function App() {
           onClick={() => handleOpenObservationModal(null)}
         >
           <span>📓 Observation Log {currentUser && totalObsCount > 0 ? `(${totalObsCount})` : ''}</span>
+        </button>
+        <button
+          id="nav-about-btn"
+          type="button"
+          className={`main-nav-btn ${activeNav === 'about' ? 'active' : ''}`}
+          onClick={() => {
+            setTargetGlossaryTermId(null);
+            setActiveNav('about');
+          }}
+        >
+          <span>📖 Science & Terms Guide</span>
         </button>
       </nav>
 
@@ -766,13 +786,33 @@ export default function App() {
 
                       <div className="neo-quick-metrics">
                         <div className="quick-metric">
-                          <span className="qm-label">Estimated Size</span>
+                          <span className="qm-label">
+                            Estimated Size
+                            <button
+                              type="button"
+                              className="term-info-chip"
+                              title="How is asteroid diameter calculated? View in Science Guide"
+                              onClick={(e) => handleNavigateToGlossary('estimated-diameter', e)}
+                            >
+                              ⓘ
+                            </button>
+                          </span>
                           <span className="qm-value">
                             {formatDiameter(neo.estimated_diameter_min_km, neo.estimated_diameter_max_km)}
                           </span>
                         </div>
                         <div className="quick-metric">
-                          <span className="qm-label">Closest Flyby</span>
+                          <span className="qm-label">
+                            Closest Flyby
+                            <button
+                              type="button"
+                              className="term-info-chip"
+                              title="What is Lunar Distance (LD)? View in Science Guide"
+                              onClick={(e) => handleNavigateToGlossary('lunar-distance', e)}
+                            >
+                              LD ⓘ
+                            </button>
+                          </span>
                           <span className="qm-value">
                             {neo.closest_miss_distance_km ? formatKm(neo.closest_miss_distance_km) : 'Historical Record'}
                           </span>
@@ -783,14 +823,32 @@ export default function App() {
                           )}
                         </div>
                         <div className="quick-metric">
-                          <span className="qm-label">Brightness</span>
+                          <span className="qm-label">
+                            Brightness
+                            <button
+                              type="button"
+                              className="term-info-chip"
+                              title="What does Absolute Magnitude (H) mean? View in Science Guide"
+                              onClick={(e) => handleNavigateToGlossary('h-magnitude', e)}
+                            >
+                              (H) ⓘ
+                            </button>
+                          </span>
                           <span className="qm-value">{neo.absolute_magnitude_h ? `${neo.absolute_magnitude_h} H` : 'N/A'}</span>
                         </div>
                       </div>
 
                       <div className="neo-card-footer">
                         <span className={`hazard-badge ${isPha ? 'pha-tracked' : 'standard-neo'}`}>
-                          {isPha ? '⚠️ NASA Tracked PHA' : 'Standard NEO'}
+                          <span>{isPha ? '⚠️ NASA Tracked PHA' : 'Standard NEO'}</span>
+                          <button
+                            type="button"
+                            className="term-info-badge-chip"
+                            title="Official NASA Potentially Hazardous Asteroid criteria in Science Guide"
+                            onClick={(e) => handleNavigateToGlossary('pha-classification', e)}
+                          >
+                            ⓘ
+                          </button>
                         </span>
 
                         <div className="card-footer-actions">
@@ -886,6 +944,11 @@ export default function App() {
         />
       )}
 
+      {/* VIEW 5: Science & Terms Guide */}
+      {activeNav === 'about' && (
+        <AboutView targetTermId={targetGlossaryTermId} />
+      )}
+
       {/* Layered Detail Modal (Newbie-First / Detail-on-Demand) */}
       {selectedNeoId && (
         <div className="modal-overlay" onClick={() => setSelectedNeoId(null)}>
@@ -949,7 +1012,15 @@ export default function App() {
                   <section className="plain-language-card" aria-label="NASA classification and scientific context">
                     <div className="tier-headline">
                       <span className={`hazard-badge ${selectedNeoDetail.is_potentially_hazardous ? 'pha-tracked' : 'standard-neo'}`} style={{ fontSize: '0.85rem', padding: '0.4rem 0.9rem' }}>
-                        {selectedNeoDetail.is_potentially_hazardous ? '⚠️ NASA Tracked PHA' : 'Standard Near-Earth Object'}
+                        <span>{selectedNeoDetail.is_potentially_hazardous ? '⚠️ NASA Tracked PHA' : 'Standard Near-Earth Object'}</span>
+                        <button
+                          type="button"
+                          className="term-info-badge-chip"
+                          title="Learn about official NASA PHA classification in Science Guide"
+                          onClick={(e) => handleNavigateToGlossary('pha-classification', e)}
+                        >
+                          ⓘ
+                        </button>
                       </span>
                       <span className="tier-text">
                         {selectedNeoDetail.is_potentially_hazardous
@@ -973,8 +1044,17 @@ export default function App() {
                     {/* Official Data Source Attribution */}
                     <div className="source-banner official-source" id="nasa-source-banner">
                       <span>🪐</span>
-                      <div>
-                        <strong>Authoritative Data Source:</strong> Official NASA JPL Small-Body Database (HORIZONS Ephemeris & NeoWs API). Orbit and close-approach calculations are deterministic astronomical physics solutions.
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <div>
+                          <strong>Authoritative Data Source:</strong> Official NASA JPL Small-Body Database (HORIZONS Ephemeris & NeoWs API). Orbit and close-approach calculations are deterministic astronomical physics solutions.
+                        </div>
+                        <button
+                          type="button"
+                          className="term-link-text-btn"
+                          onClick={(e) => handleNavigateToGlossary('horizons-ephemeris', e)}
+                        >
+                          What is NASA JPL Horizons Ephemeris? &rarr;
+                        </button>
                       </div>
                     </div>
                   </section>
@@ -1017,11 +1097,31 @@ export default function App() {
                           <h4>Physical Properties</h4>
                           <div className="metrics-grid">
                             <div className="metric-cell">
-                              <span className="label">Absolute Magnitude (H)</span>
+                              <span className="label">
+                                Absolute Magnitude (H)
+                                <button
+                                  type="button"
+                                  className="term-info-chip"
+                                  title="Explain Absolute Magnitude (H) in Science Guide"
+                                  onClick={(e) => handleNavigateToGlossary('h-magnitude', e)}
+                                >
+                                  ⓘ
+                                </button>
+                              </span>
                               <span className="value">{selectedNeoDetail.absolute_magnitude_h ?? 'N/A'}</span>
                             </div>
                             <div className="metric-cell">
-                              <span className="label">Estimated Diameter Min</span>
+                              <span className="label">
+                                Estimated Diameter Min
+                                <button
+                                  type="button"
+                                  className="term-info-chip"
+                                  title="Explain Diameter Range in Science Guide"
+                                  onClick={(e) => handleNavigateToGlossary('estimated-diameter', e)}
+                                >
+                                  ⓘ
+                                </button>
+                              </span>
                               <span className="value">
                                 {selectedNeoDetail.estimated_diameter_min_km
                                   ? `${(selectedNeoDetail.estimated_diameter_min_km * 1000).toFixed(1)} m`
@@ -1029,7 +1129,17 @@ export default function App() {
                               </span>
                             </div>
                             <div className="metric-cell">
-                              <span className="label">Estimated Diameter Max</span>
+                              <span className="label">
+                                Estimated Diameter Max
+                                <button
+                                  type="button"
+                                  className="term-info-chip"
+                                  title="Explain Diameter Range in Science Guide"
+                                  onClick={(e) => handleNavigateToGlossary('estimated-diameter', e)}
+                                >
+                                  ⓘ
+                                </button>
+                              </span>
                               <span className="value">
                                 {selectedNeoDetail.estimated_diameter_max_km
                                   ? `${(selectedNeoDetail.estimated_diameter_max_km * 1000).toFixed(1)} m`
