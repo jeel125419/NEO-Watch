@@ -29,29 +29,16 @@ NEO Watch runs on a 100% free, modern serverless cloud stack:
 
 ```mermaid
 flowchart TD
-    subgraph Client ["Client Tier (Vercel Edge)"]
-        UI["React 18 + Vite SPA\n• https://neo-watch-teal.vercel.app\n• Cosmos Exploration UI\n• Asteroid Catalog & Search\n• Science & Terms Guide\n• Celestial Sky Map\n• Watchlists & Sighting Log"]
-    end
+    Client["Frontend: React 18 + Vite (Vercel)"]
+    API["Backend API: Node.js + Express (Render)"]
+    DB[("Database: PostgreSQL (Neon Serverless)")]
+    NASA["NASA JPL NeoWs API"]
+    Ext["External Visualizers: NASA 3D, Aladin, MPC"]
 
-    subgraph Backend ["Backend API Tier (Render)"]
-        EXPRESS["Node.js + Express (ES Modules)\n• REST API (/api/neos, /api/visibility, /api/auth, /api/watchlist, /api/observations)\n• Direct pg Connection Pool with Cloud SSL\n• Astronomical Coordinate Math (RA/Dec, Alt/Az, Moon Illumination)\n• JWT Authentication & bcryptjs Password Hashing"]
-    end
-
-    subgraph Data ["Cloud Database Tier (Neon.tech)"]
-        PG[("Neon Serverless PostgreSQL\n• neo_objects\n• close_approach_events\n• orbital_elements\n• users & watchlists\n• observations")]
-    end
-
-    subgraph External ["External Astronomical Systems"]
-        NASA["🛰️ NASA JPL NeoWs REST API"]
-        JPL3D["🪐 NASA JPL 3D Orbit Viewer"]
-        ALADIN["🗺️ Aladin Lite (CDS / ESA Sky Survey)"]
-        MPC["🔭 IAU Minor Planet Center"]
-    end
-
-    UI <-->|HTTPS / REST API| EXPRESS
-    EXPRESS <-->|Pooled PostgreSQL SSL| PG
-    EXPRESS <--|Data Ingestion| NASA
-    UI -->|Interactive Deep-Links| External
+    Client -->|"REST API (HTTPS)"| API
+    API -->|"Pooled SSL Queries"| DB
+    NASA -->|"Asteroid Ingestion"| API
+    Client -->|"Deep Links"| Ext
 ```
 
 ---
@@ -68,12 +55,12 @@ flowchart TD
 - Filter by official NASA hazard flag and sort by diameter, miss distance, approach date, or name.
 - **Layered Asteroid Dossier**:
   - **Human Translation**: Plain-English hazard explanations distinguishing orbital criteria from collision claims.
-  - **Scientific Telemetry**: Orbital parameters ($e$, $i$, $a$, orbital period), historical and upcoming flybys, and miss distances in Lunar Distances ($LD$) and kilometers.
+  - **Scientific Telemetry**: Orbital parameters (e, i, a, orbital period), historical and upcoming flybys, and miss distances in Lunar Distances (LD) and kilometers.
   - **External Visualizers**: Direct 1-click links to NASA JPL 3D Orbit Viewer, Aladin Lite optical survey, and IAU Minor Planet Center.
 
 ### 3. 📖 Interactive Science & Terms Guide
 A dedicated educational hub translating 9 fundamental astronomical concepts:
-- **Concepts Covered**: Absolute Magnitude ($H$), Lunar Distance ($LD$), Astronomical Unit ($AU$), Semi-Major Axis ($a$), Orbital Eccentricity ($e$), Orbital Inclination ($i$), Close Approach Velocity, Potentially Hazardous Asteroid ($PHA$), and Apparent Magnitude ($V$).
+- **Concepts Covered**: Absolute Magnitude (H), Lunar Distance (LD), Astronomical Unit (AU), Semi-Major Axis (a), Orbital Eccentricity (e), Orbital Inclination (i), Close Approach Velocity, Potentially Hazardous Asteroid (PHA), and Apparent Magnitude (V).
 - **Progressive Disclosure**: Quick 1-sentence summary by default, with an expandable **"Go Deeper ▾"** breakdown.
 - **Visual Illustrations**: Custom inline SVG diagrams demonstrating orbital planes, elliptical eccentricities, and lunar distance scales.
 - **Official NASA Documentation**: Direct verified links to official NASA, JPL CNEOS, and IAU references.
@@ -83,14 +70,14 @@ A dedicated educational hub translating 9 fundamental astronomical concepts:
 - Calculates whether an asteroid is observable from your exact geographic coordinates tonight.
 - **Topocentric Altitude & Compass Azimuth** calculated in real time using Local Sidereal Time (LST) and Keplerian orbital elements.
 - **Lunar Interference Engine**: Moon phase illumination percentage and angular lunar separation penalty.
-- **24-Hour Horizon Altitude Curve**: Visual histogram highlighting dark-sky observable windows ($\ge 15^\circ$ elevation during astronomical twilight).
+- **24-Hour Horizon Altitude Curve**: Visual histogram highlighting dark-sky observable windows (≥ 15° elevation during astronomical twilight).
 - **Geolocation**: One-click browser GPS lock or instant selection from global astronomical observatory presets (Mauna Kea, Atacama Desert, New Delhi, New York, London, Tokyo).
 
 ### 5. 🌌 Interactive Celestial Sky Map
 - Real-time **Planisphere Polar Dome Canvas Projection**:
-  - Zenith ($90^\circ$) at the center, local horizon ($0^\circ$) at the perimeter.
-  - Concentric altitude rings ($30^\circ$, $60^\circ$) and $15^\circ$ unobstructed horizon barrier.
-- **Time Scrubber**: Slide from $-12\text{ h}$ to $+12\text{ h}$ to preview asteroid positions across the night.
+  - Zenith (90°) at the center, local horizon (0°) at the perimeter.
+  - Concentric altitude rings (30°, 60°) and 15° unobstructed horizon barrier.
+- **Time Scrubber**: Slide from -12 hours to +12 hours to preview asteroid positions across the night.
 - **Astronomical Red Night Vision Mode**: Monochromatic deep-red UI mode preserving human dark adaptation during outdoor telescope sessions.
 
 ### 6. ⭐ User Accounts & Asteroid Watchlists
