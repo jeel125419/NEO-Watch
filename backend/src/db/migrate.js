@@ -13,14 +13,24 @@ async function runMigration() {
   const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/neo_watch';
   console.log(`[Migration] Connecting to database...`);
 
-  // First, verify or create the neo_watch database by connecting to default postgres DB
+  const isCloudDb = process.env.DATABASE_URL && (
+    process.env.DATABASE_URL.includes('neon.tech') ||
+    process.env.DATABASE_URL.includes('supabase') ||
+    process.env.DATABASE_URL.includes('render.com') ||
+    process.env.DATABASE_URL.includes('sslmode=require') ||
+    process.env.NODE_ENV === 'production'
+  );
+
+  const sslConfig = isCloudDb ? { rejectUnauthorized: false } : false;
+
+  // First, verify or create the neo_watch database by connecting to default postgres DB (local only)
   const urlObj = new URL(dbUrl);
   const targetDbName = urlObj.pathname.replace(/^\//, '');
 
-  if (targetDbName && targetDbName !== 'postgres') {
+  if (!isCloudDb && targetDbName && targetDbName !== 'postgres') {
     const maintenanceUrl = new URL(dbUrl);
     maintenanceUrl.pathname = '/postgres';
-    const maintenanceClient = new pg.Client({ connectionString: maintenanceUrl.toString() });
+    const maintenanceClient = new pg.Client({ connectionString: maintenanceUrl.toString(), ssl: sslConfig });
 
     try {
       await maintenanceClient.connect();
@@ -41,7 +51,7 @@ async function runMigration() {
   }
 
   // Connect to target DB and apply schema
-  const client = new pg.Client({ connectionString: dbUrl });
+  const client = new pg.Client({ connectionString: dbUrl, ssl: sslConfig });
   try {
     await client.connect();
     console.log(`[Migration] Connected to '${targetDbName}'. Reading schema.sql...`);
